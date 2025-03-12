@@ -21,7 +21,7 @@
       "name": "default-msvc",
       "displayName": "Default MSVC",
       "description": "Default build using Visual Studio and vcpkg",
-      "generator": "Visual Studio 16 2019",
+      "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
