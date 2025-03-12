@@ -1,11 +1,8 @@
 #include <iostream>
-#include "robot.h"
+#include <imgui.h>
 
 int main() {
-  std::cout << "Hello worlds" << '\n';
-
-  Robot rob;
-  rob.sayHello();
+  std::cout << "Hello world" << '\n';
 
   return 0;
 }

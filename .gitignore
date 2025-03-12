@@ -1,1 +1,4 @@
-build
+# build testing
+/build
+/vcpkg
+/vcpkg_installed
