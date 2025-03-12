@@ -1,5 +1,4 @@
 # build testing
 /build
-/vcpkg
 /vcpkg_installed
 /.cache
