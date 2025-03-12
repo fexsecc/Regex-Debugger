@@ -2,3 +2,4 @@
 /build
 /vcpkg
 /vcpkg_installed
+/.cache
