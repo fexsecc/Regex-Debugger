@@ -3,3 +3,4 @@
 /vcpkg
 /vcpkg_installed
 /.cache
+compile_commands.json
