@@ -1,3 +1,7 @@
+#ifdef _WIN32
+#include <windows.h>
+#include <wingdi.h>
+#endif
 #include <stdio.h>
 #include <GL/gl.h>
 #include <imgui.h>
