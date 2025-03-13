@@ -17,7 +17,6 @@ static void glfw_error_callback(int error, const char* description)
 }
 
 int main() {
-
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit())
     return 1;
@@ -52,7 +51,9 @@ int main() {
   // Our state
   bool show_main_window = true;
   bool show_demo_window = true;
-  ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+  ImVec4 clear_color = ImVec4(0.45f, 0.00f, 0.90f, 1.00f);
+  
+  bool showCoolButton = true;
 
   while (!glfwWindowShouldClose(window)) {
     // Poll and handle events (inputs, window resize, etc.)
@@ -65,7 +66,7 @@ int main() {
       ImGui_ImplGlfw_Sleep(10);
       continue;
     }
-
+    
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -73,15 +74,21 @@ int main() {
 
     // Start the ImGui demo frame
     //if (show_demo_window)
-    //  ImGui::ShowDemoWindow(&show_demo_window);
-
+    //ImGui::ShowDemoWindow(&show_demo_window);
+    
     // Window contents (use Begin/End pair to create a named window)
     {
-    ImGui::Begin("Hello world"); // Create window called hello world and append into it
-    ImGui::Text("Sample text"); // Display text (you can use format strings like printf)
-    ImGui::End();
+        ImGui::Begin("Hello world"); // Create window called hello world and append into it
+        ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
+        ImGui::End();
     }
-    
+    if(showCoolButton)
+    {
+        ImGui::Begin("cool button holder", &showCoolButton);
+        if (ImGui::Button("Cool Button"))
+            showCoolButton = false;
+        ImGui::End();
+    }
 
     ImGui::Render();
     int display_w, display_h;
