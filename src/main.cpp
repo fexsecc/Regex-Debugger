@@ -54,23 +54,21 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
   return window;
 }
 
-void scale(char name[], ImVec2 initSize, ImVec2 displaySize, ImVec2 initDisplaySize) {
+void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
     ImGui::Begin(name);
-    ImVec2 size = ImGui::GetWindowSize();
 
-    ImVec2 scale = ImVec2(displaySize.x / initDisplaySize.x, displaySize.y / initDisplaySize.y);
+    ImGui::SetWindowSize(ImVec2(initSize.x*scale.x, initSize.y*scale.y), 0); //apply scale to the specifically named window
 
-    ImGui::SetWindowSize(ImVec2(initSize.x*scale.x, initSize.y*scale.y), 0);
     ImGui::End();
 }
 
 void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 initDisplaySize, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
    glfwGetFramebufferSize(window, &displayW, &displayH);
+   ImVec2 scale = ImVec2(displayW / initDisplaySize.x, displayH / initDisplaySize.y);
    { // Create window called hello world and append into it
      ImGui::Begin("Hello world",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus); 
      ImGui::SetWindowPos(ImVec2(0, 0), 0);
-     ImGui::SetWindowSize(initDisplaySize, 0);
-     scale("Hello world", initDisplaySize, ImVec2(displayW, displayH), initDisplaySize); //here the initDisplaySize is the original size of the window
+     ApplyScale("Hello world",ImVec2(1280,720), scale); //here the initDisplaySize is the original size of the window
      ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
      ImGui::End();
    }
@@ -78,8 +76,7 @@ void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 ini
    case 1:
    {
      ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration); //if you use the same name it changes the already existing window
-     ImGui::SetWindowSize(ImVec2(150, 300), 0);
-     scale("2", ImVec2(150, 300), ImVec2(displayW, displayH), initDisplaySize);
+     ApplyScale("2", ImVec2(150,300),scale);
      ImGui::Text("good job, you clicked the button!");
      ImGui::End();
      break;
@@ -87,10 +84,10 @@ void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 ini
    default:
    {
        ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration);
-       if (ImGui::Button("Cool Button", ImVec2(90, 40))) {
+       if (ImGui::Button("Cool Button", ImVec2(103*scale.x,30*scale.y))) {
            state[0] = 1;
        }
-       scale("2", ImVec2(90, 40), ImVec2(displayW, displayH), initDisplaySize);
+       ApplyScale("2", ImVec2(120, 45), scale);
        ImGui::End();
        break;
    }
