@@ -1,7 +1,9 @@
 # Regex-Debugger
 ## Building
 ### Windows
+
 ```powershell
+git clone https://github.com/microsoft/vcpkg.git
 Set-ExecutionPolicy Bypass -Scope Process # enable running the setup ps1 script
 .\setup.ps1
 cmake --build build

@@ -24,9 +24,10 @@ int main() {
   const char* glsl_version = "#version 130";
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-
+  
+  int initW = 1280, initH = 720;
   // Create window with graphics context
-  GLFWwindow* window = glfwCreateWindow(1280, 720, "Regex-Debugger", nullptr, nullptr);
+  GLFWwindow* window = glfwCreateWindow(initW, initH, "Regex-Debugger", nullptr, nullptr);
   if (window == nullptr)
       return 1;
   glfwMakeContextCurrent(window);
@@ -51,7 +52,7 @@ int main() {
   // Our state
   bool show_main_window = true;
   bool show_demo_window = true;
-  ImVec4 clear_color = ImVec4(0.45f, 0.00f, 0.90f, 1.00f);
+  ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
   
   bool showCoolButton = true;
 
@@ -76,19 +77,24 @@ int main() {
     //if (show_demo_window)
     //ImGui::ShowDemoWindow(&show_demo_window);
     
+
     // Window contents (use Begin/End pair to create a named window)
+    if (showCoolButton)
     {
-        ImGui::Begin("Hello world"); // Create window called hello world and append into it
-        ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
-        ImGui::End();
-    }
-    if(showCoolButton)
-    {
-        ImGui::Begin("cool button holder", &showCoolButton);
+        ImGui::Begin("cool button holder", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);
         if (ImGui::Button("Cool Button"))
             showCoolButton = false;
         ImGui::End();
     }
+    glfwGetFramebufferSize(window, &initW, &initH);
+    {
+        ImGui::Begin("Hello world",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground); // Create window called hello world and append into it
+        ImGui::SetWindowPos(ImVec2(0, 0), 0);
+        ImGui::SetWindowSize(ImVec2(initW, initH), 0);
+        ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
+        ImGui::End();
+    }
+
 
     ImGui::Render();
     int display_w, display_h;
@@ -97,7 +103,6 @@ int main() {
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-  
     glfwSwapBuffers(window);
   }
 
