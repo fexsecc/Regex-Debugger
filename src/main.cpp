@@ -77,7 +77,7 @@ void RenderGUI(GLFWwindow* window,int initH,int initW) {
   bool showCoolButton = true;
   ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
   int display_w, display_h;
-  int state[1] = {};
+  int state[1] = {}; // change this when you add another window with different states
 
   while (!glfwWindowShouldClose(window)) {
     // Poll and handle events (inputs, window resize, etc.)
