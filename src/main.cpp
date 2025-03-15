@@ -1,4 +1,5 @@
 #ifdef _WIN32
+#include <iostream>
 #include <windows.h>
 #include <wingdi.h>
 #endif
@@ -10,26 +11,23 @@
 #include <GLFW/glfw3.h>
 #include <GLES2/gl2.h>
 #include <imgui_impl_opengl3_loader.h>
+#include "GUI_handler.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-int main() {
-  glfwSetErrorCallback(glfw_error_callback);
-  if (!glfwInit())
-    return 1;
-
+GLFWwindow* InitializeGUI(int initW,int initH) { // Generate the main window
   const char* glsl_version = "#version 130";
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  
-  int initW = 1280, initH = 720;
+
   // Create window with graphics context
   GLFWwindow* window = glfwCreateWindow(initW, initH, "Regex-Debugger", nullptr, nullptr);
   if (window == nullptr)
-      return 1;
+      return NULL;
+  
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1); // Enable vsync
 
@@ -52,9 +50,34 @@ int main() {
   // Our state
   bool show_main_window = true;
   bool show_demo_window = true;
-  ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
   
+  return window;
+}
+
+void generateWindows(GLFWwindow* window,int &display_w, int &display_h, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
+   if (!state[0])
+   {
+       ImGui::SetNextWindowFocus();
+       ImGui::Begin("cool button holder", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);
+       if (ImGui::Button("Cool Button"))
+         state[0] = 1;
+       ImGui::End();
+   }
+   glfwGetFramebufferSize(window, &display_w, &display_h);
+   {
+       ImGui::Begin("Hello world",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground); // Create window called hello world and append into it
+       ImGui::SetWindowPos(ImVec2(0, 0), 0);
+       ImGui::SetWindowSize(ImVec2(display_w, display_h), 0);
+       ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
+       ImGui::End();
+   }
+}
+
+void RenderGUI(GLFWwindow* window,int initH,int initW) { 
   bool showCoolButton = true;
+  ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
+  int display_w, display_h;
+  int state[1] = {};
 
   while (!glfwWindowShouldClose(window)) {
     // Poll and handle events (inputs, window resize, etc.)
@@ -73,31 +96,10 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Start the ImGui demo frame
-    //if (show_demo_window)
-    //ImGui::ShowDemoWindow(&show_demo_window);
+    // Window contents are in the generateWindows() function (use Begin/End pair to create a named window)
+    generateWindows(window, display_h, display_w, state);
     
-
-    // Window contents (use Begin/End pair to create a named window)
-    if (showCoolButton)
-    {
-        ImGui::Begin("cool button holder", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);
-        if (ImGui::Button("Cool Button"))
-            showCoolButton = false;
-        ImGui::End();
-    }
-    glfwGetFramebufferSize(window, &initW, &initH);
-    {
-        ImGui::Begin("Hello world",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground); // Create window called hello world and append into it
-        ImGui::SetWindowPos(ImVec2(0, 0), 0);
-        ImGui::SetWindowSize(ImVec2(initW, initH), 0);
-        ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
-        ImGui::End();
-    }
-
-
     ImGui::Render();
-    int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
@@ -113,6 +115,13 @@ int main() {
 
   glfwDestroyWindow(window);
   glfwTerminate();
+}
 
+int main() {
+  int initW = 1280, initH = 720; 
+  glfwSetErrorCallback(glfw_error_callback);
+  if (!glfwInit())
+    return 1;
+  RenderGUI(InitializeGUI(initW,initH),initW,initH); // InitializeGUI() returns the window that is being rendered
   return 0;
 }
