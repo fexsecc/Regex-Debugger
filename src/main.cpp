@@ -18,13 +18,13 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-GLFWwindow* InitializeGUI(int initW,int initH) { // Generate the main window
+GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
   const char* glsl_version = "#version 130";
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
   // Create window with graphics context
-  GLFWwindow* window = glfwCreateWindow(initW, initH, "Regex-Debugger", nullptr, nullptr);
+  GLFWwindow* window = glfwCreateWindow(initDisplaySize.x, initDisplaySize.y, "Regex-Debugger", nullptr, nullptr);
   if (window == nullptr)
       return NULL;
   
@@ -54,26 +54,50 @@ GLFWwindow* InitializeGUI(int initW,int initH) { // Generate the main window
   return window;
 }
 
-void generateWindows(GLFWwindow* window,int &display_w, int &display_h, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
-   if (!state[0])
-   {
-       ImGui::SetNextWindowFocus();
-       ImGui::Begin("cool button holder", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);
-       if (ImGui::Button("Cool Button"))
-         state[0] = 1;
-       ImGui::End();
+void scale(char name[], ImVec2 initSize, ImVec2 displaySize, ImVec2 initDisplaySize) {
+    ImGui::Begin(name);
+    ImVec2 size = ImGui::GetWindowSize();
+
+    ImVec2 scale = ImVec2(displaySize.x / initDisplaySize.x, displaySize.y / initDisplaySize.y);
+
+    ImGui::SetWindowSize(ImVec2(initSize.x*scale.x, initSize.y*scale.y), 0);
+    ImGui::End();
+}
+
+void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 initDisplaySize, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
+   glfwGetFramebufferSize(window, &displayW, &displayH);
+   { // Create window called hello world and append into it
+     ImGui::Begin("Hello world",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus); 
+     ImGui::SetWindowPos(ImVec2(0, 0), 0);
+     ImGui::SetWindowSize(initDisplaySize, 0);
+     scale("Hello world", initDisplaySize, ImVec2(displayW, displayH), initDisplaySize); //here the initDisplaySize is the original size of the window
+     ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
+     ImGui::End();
    }
-   glfwGetFramebufferSize(window, &display_w, &display_h);
+   switch (state[0]) {
+   case 1:
    {
-       ImGui::Begin("Hello world",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground); // Create window called hello world and append into it
-       ImGui::SetWindowPos(ImVec2(0, 0), 0);
-       ImGui::SetWindowSize(ImVec2(display_w, display_h), 0);
-       ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
+     ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration); //if you use the same name it changes the already existing window
+     ImGui::SetWindowSize(ImVec2(150, 300), 0);
+     scale("2", ImVec2(150, 300), ImVec2(displayW, displayH), initDisplaySize);
+     ImGui::Text("good job, you clicked the button!");
+     ImGui::End();
+     break;
+   }
+   default:
+   {
+       ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration);
+       if (ImGui::Button("Cool Button", ImVec2(90, 40))) {
+           state[0] = 1;
+       }
+       scale("2", ImVec2(90, 40), ImVec2(displayW, displayH), initDisplaySize);
        ImGui::End();
+       break;
+   }
    }
 }
 
-void RenderGUI(GLFWwindow* window,int initH,int initW) { 
+void RenderGUI(GLFWwindow* window,ImVec2 initDisplaySize) { 
   bool showCoolButton = true;
   ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
   int display_w, display_h;
@@ -97,7 +121,7 @@ void RenderGUI(GLFWwindow* window,int initH,int initW) {
     ImGui::NewFrame();
 
     // Window contents are in the generateWindows() function (use Begin/End pair to create a named window)
-    generateWindows(window, display_h, display_w, state);
+    generateWindows(window, display_h, display_w, initDisplaySize, state);
     
     ImGui::Render();
     glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -118,10 +142,10 @@ void RenderGUI(GLFWwindow* window,int initH,int initW) {
 }
 
 int main() {
-  int initW = 1280, initH = 720; 
+  ImVec2 initDisplaySize = ImVec2(1280.0, 720.0);
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit())
     return 1;
-  RenderGUI(InitializeGUI(initW,initH),initW,initH); // InitializeGUI() returns the window that is being rendered
+  RenderGUI(InitializeGUI(initDisplaySize),initDisplaySize); // InitializeGUI() returns the window that is being rendered
   return 0;
 }
