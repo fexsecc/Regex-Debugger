@@ -74,25 +74,11 @@ void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 ini
      ImGui::Text("REGEX_DBG"); // Display text (you can use format strings like printf)
      ImGui::End();
    }
-   switch (state[0]) {
-   case 1:
-   {
-       ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration); //if you use the same name it changes the already existing window
-       ApplyScale("2", ImVec2(150, 300), scale);
-       ImGui::Text("good job, you clicked the button!");
+   { // Create a window to hold the "Valid input" and "Explanation" tabs
+       ImGui::Begin("VI&Ebg", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
+       ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
+       ImGui::SetWindowSize(ImVec2(900,900), 0);
        ImGui::End();
-       break;
-   }
-   default:
-   {
-       ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration);
-       if (ImGui::Button("Cool Button", ImVec2(103 * scale.x, 30 * scale.y))) {
-           state[0] = 1;
-       }
-       ApplyScale("2", ImVec2(120, 45), scale);
-       ImGui::End();
-       break;
-   }
    }
    static char buf[10000] = "Example: ^([0-9])\\1{3}$"; //this is the Regex Input tab
    {
@@ -102,6 +88,58 @@ void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 ini
        ImGui::SetWindowPos(ImVec2(380*scale.x,20), 0);
        ApplyScale("Input Window", ImVec2(900, 300), scale);
        ImGui::End();
+   }
+   switch (state[0]) {
+     case 1:
+     { //focused explanation window
+
+       //create the explanation window
+       ImGui::Begin("3", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+       if (ImGui::Button("Go back", ImVec2(120 * scale.x, 30 * scale.y)))
+           state[0] = 0;
+       ImGui::Text("This is the explanation window!");
+       ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
+       ApplyScale("3", ImVec2(900, 420), scale);
+       ImGui::End();
+       break;
+     }
+     case 2:
+     { //focused valid input window
+
+       //create the valid input window
+       ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
+       if (ImGui::Button("Go back", ImVec2(120 * scale.x, 30 * scale.y)))
+           state[0] = 0;
+       ImGui::Text("This is the valid input window!");
+       ImGui::SetWindowPos(ImVec2(380*scale.x,20+300*scale.y), 0);
+       ApplyScale("1", ImVec2(900,420), scale);
+       ImGui::End();
+       break;
+     }
+     default:
+     { //both valid input and explanation windows at the same time
+       
+       //create the valid input window
+
+       ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
+       if (ImGui::Button("Focus VI window", ImVec2(120 * scale.x, 30 * scale.y)))
+           state[0] = 2;
+       ImGui::Text("This is the valid input window!");
+       ImGui::SetWindowPos(ImVec2(380*scale.x,20+300*scale.y), 0);
+       ApplyScale("1", ImVec2(450,420), scale);
+       ImGui::End();
+
+       // create the explanation window
+
+       ImGui::Begin("3", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+       if (ImGui::Button("Focus Ex window", ImVec2(120 * scale.x, 30 * scale.y)))
+           state[0] = 1;
+       ImGui::Text("This is the explanation window!");
+       ImGui::SetWindowPos(ImVec2(830 * scale.x, 20 + 300 * scale.y), 0);
+       ApplyScale("3", ImVec2(450, 420), scale);
+       ImGui::End();
+       break;
+     }
    }
 }
 
