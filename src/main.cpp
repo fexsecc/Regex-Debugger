@@ -12,6 +12,8 @@
 #include <GLES2/gl2.h>
 #include <imgui_impl_opengl3_loader.h>
 #include "GUI_handler.h"
+#include <cstring>
+#include <string>
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -65,32 +67,41 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
 void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 initDisplaySize, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
    glfwGetFramebufferSize(window, &displayW, &displayH);
    ImVec2 scale = ImVec2(displayW / initDisplaySize.x, displayH / initDisplaySize.y);
-   { // Create window called hello world and append into it
-     ImGui::Begin("Hello world",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus); 
+   { // Create window called main and append into it
+     ImGui::Begin("main",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus); 
      ImGui::SetWindowPos(ImVec2(0, 0), 0);
-     ApplyScale("Hello world",ImVec2(1280,720), scale); //here the initDisplaySize is the original size of the window
-     ImGui::Text("yo how we doin"); // Display text (you can use format strings like printf)
+     ApplyScale("main",ImVec2(1280,720), scale); //here the initDisplaySize is the original size of the window
+     ImGui::Text("REGEX_DBG"); // Display text (you can use format strings like printf)
      ImGui::End();
    }
    switch (state[0]) {
    case 1:
    {
-     ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration); //if you use the same name it changes the already existing window
-     ApplyScale("2", ImVec2(150,300),scale);
-     ImGui::Text("good job, you clicked the button!");
-     ImGui::End();
-     break;
+       ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration); //if you use the same name it changes the already existing window
+       ApplyScale("2", ImVec2(150, 300), scale);
+       ImGui::Text("good job, you clicked the button!");
+       ImGui::End();
+       break;
    }
    default:
    {
        ImGui::Begin("2", nullptr, ImGuiWindowFlags_NoDecoration);
-       if (ImGui::Button("Cool Button", ImVec2(103*scale.x,30*scale.y))) {
+       if (ImGui::Button("Cool Button", ImVec2(103 * scale.x, 30 * scale.y))) {
            state[0] = 1;
        }
        ApplyScale("2", ImVec2(120, 45), scale);
        ImGui::End();
        break;
    }
+   }
+   static char buf[10000] = "Example: ^([0-9])\\1{3}$"; //this is the Regex Input tab
+   {
+       ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+       ImGui::InputText("<--regexInput", buf, IM_ARRAYSIZE(buf));
+       ImGui::TextWrapped(buf);
+       ImGui::SetWindowPos(ImVec2(380*scale.x,20), 0);
+       ApplyScale("Input Window", ImVec2(900, 300), scale);
+       ImGui::End();
    }
 }
 
