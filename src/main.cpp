@@ -1,8 +1,10 @@
 #ifdef _WIN32
-#include <iostream>
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup") // remove empty cmd
 #include <windows.h>
 #include <wingdi.h>
 #endif
+
+#include <iostream>
 #include <stdio.h>
 #include <GL/gl.h>
 #include <imgui.h>
@@ -195,3 +197,4 @@ int main() {
   RenderGUI(InitializeGUI(initDisplaySize),initDisplaySize); // InitializeGUI() returns the window that is being rendered
   return 0;
 }
+
