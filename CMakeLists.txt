@@ -12,6 +12,7 @@ find_package(glad REQUIRED)
 find_package(glm REQUIRED)
 find_package(freetype REQUIRED)
 find_package(imgui REQUIRED)
+find_package(re2 REQUIRED)
 
 # stb does not have a CMake build, but is header-only
 #find_path(STB_INCLUDE_DIRS "stb.h") 
@@ -32,6 +33,7 @@ target_link_libraries(
     glad::glad
     glm::glm
     imgui::imgui
+    re2::re2
 )
 
 # ============================================================

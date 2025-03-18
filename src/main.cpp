@@ -13,7 +13,7 @@
 #include <imgui_impl_opengl3_loader.h>
 #include "GUI_handler.h"
 #include <cstring>
-#include <string>
+#include <re2/re2.h> // re2 test checks out
 
 static void glfw_error_callback(int error, const char* description)
 {
