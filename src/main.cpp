@@ -76,12 +76,6 @@ void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 ini
      ImGui::Text("REGEX_DBG"); // Display text (you can use format strings like printf)
      ImGui::End();
    }
-   { // Create a window to hold the "Valid input" and "Explanation" tabs
-       ImGui::Begin("VI&Ebg", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
-       ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
-       ImGui::SetWindowSize(ImVec2(900,900), 0);
-       ImGui::End();
-   }
    static char buf[10000] = "Example: ^([0-9])\\1{3}$"; //this is the Regex Input tab
    {
        ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
