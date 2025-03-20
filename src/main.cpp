@@ -5,12 +5,11 @@
 #endif
 #include <iostream>
 #include <stdio.h>
-#include <GL/gl.h>
+#include <glad/glad.h>
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_glfw.h>
 #include <GLFW/glfw3.h>
-#include <GLES2/gl2.h>
 #include <imgui_impl_opengl3_loader.h>
 #include "GUI_handler.h"
 #include <cstring>
@@ -115,6 +114,7 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
       return NULL;
   
   glfwMakeContextCurrent(window);
+  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
   glfwSwapInterval(1); // Enable vsync
 
 
