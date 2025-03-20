@@ -21,17 +21,17 @@ static void glfw_error_callback(int error, const char* description)
 }
 
 const char *vertexShaderSource = "#version 130\n"
-    "layout (location = 0) in vec3 aPos;\n"
+    "in vec3 aPos;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
+    "}\n";
 const char *fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\n\0";
+    "}\n";
 
 unsigned int VAO, VBO, fragmentShader, vertexShader, shaderProgram;
 
