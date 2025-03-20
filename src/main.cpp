@@ -101,51 +101,7 @@ void initShaders() {
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0); 
-    
-    // To apply textures to only a small window for the icon, this bottom part is useful
         
-}
-
-void generateIcon() {
-    GLuint FBO, textureHolder;
-    // Step 1: Generate and configure framebuffer
-    glGenFramebuffers(1, &FBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);  // Bind framebuffer
-
-    // Step 2: Create texture to store the rendering output
-    glGenTextures(1, &textureHolder); 
-    glBindTexture(GL_TEXTURE_2D, textureHolder);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 200, 200, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); // Create texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Set texture filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // Step 3: Attach texture to the framebuffer
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureHolder, 0);
-
-    // Step 4: Check if the framebuffer is complete
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "Framebuffer not complete!" << std::endl;
-        return; // Return early if FBO is not complete
-    }
-
-    // Step 5: Clear the framebuffer
-    glClear(GL_COLOR_BUFFER_BIT);
-    glViewport(0, 0, 200, 200);
-
-    // Step 6: Render to the framebuffer
-    glUseProgram(shaderProgram);   // Use the shader program
-    glBindVertexArray(VAO);       // Bind the vertex array object
-    glDrawArrays(GL_TRIANGLES, 0, 3);  // Render the Triangle
-
-    // Step 7: Unbind framebuffer (back to default framebuffer)
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Step 8: Display the texture in ImGui
-    ImGui::Begin("Shader Preview", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::SetWindowPos(ImVec2(0, 420), 0);
-    ImGui::Image(textureHolder, ImVec2(300, 300)); // Display the texture
-    ImGui::End();
-    
 }
 
 GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
@@ -195,6 +151,61 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
 
     ImGui::End();
 }
+
+void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) { 
+    
+    /*
+    This function puts a texture into a frameBuffer using a frameBufferObject(FBO), 
+    
+    Then it generates an empty image using textureHolder and applies the shader to it.
+
+    After rendering it, it puts the texture into an ImGui tab using ImGui::image
+    */
+
+    ImVec2 scale = ImVec2(displaySize.x / InitDisplaySize.x, displaySize.y / InitDisplaySize.y);
+
+    GLuint FBO, textureHolder;
+    // Generate and configure framebuffer
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);  // Bind framebuffer
+
+    // Create texture to store the rendering output
+    glGenTextures(1, &textureHolder); 
+    glBindTexture(GL_TEXTURE_2D, textureHolder);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 200, 200, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); // Create texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Set texture filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // Attach texture to the framebuffer
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureHolder, 0);
+
+    // Check if the framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Framebuffer not complete!" << std::endl;
+        return; // Return early if FBO is not complete
+    }
+
+    // Clear the framebuffer
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, 200, 200);
+
+    // Render to the framebuffer
+    glUseProgram(shaderProgram);   // Use the shader program
+    glBindVertexArray(VAO);       // Bind the vertex array object
+    glDrawArrays(GL_TRIANGLES, 0, 3);  // Render the Triangle
+
+    // Unbind framebuffer (back to default framebuffer)
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Display the texture in ImGui
+    ImGui::Begin("Icon", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    ImGui::SetWindowPos(ImVec2(0, 420*scale.y), 0);
+    ImGui::Image(textureHolder, ImVec2(300*scale.x, 300*scale.y)); // Display the texture
+    ApplyScale("Icon", ImVec2(300,300), scale);
+    ImGui::End();
+    
+}
+
 
 void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 initDisplaySize, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
    glfwGetFramebufferSize(window, &displayW, &displayH);
@@ -298,7 +309,7 @@ void RenderGUI(GLFWwindow* window,ImVec2 initDisplaySize) {
     // Window contents are in the generateWindows() function (use Begin/End pair to create a named window)
     generateWindows(window, display_h, display_w, initDisplaySize, state);
 
-    generateIcon();
+    generateIcon(ImVec2(display_h,display_w),initDisplaySize);
 
     ImGui::Render();
     glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -306,8 +317,7 @@ void RenderGUI(GLFWwindow* window,ImVec2 initDisplaySize) {
     glViewport(0, 0, display_w, display_h);
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());\
-
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
   }
