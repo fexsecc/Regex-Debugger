@@ -24,7 +24,7 @@ const char *vertexShaderSource = "#version 130\n"
     "in vec3 aPos;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   gl_Position = vec4(aPos, 1.0);\n"
     "}\n";
 const char *fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
@@ -35,10 +35,12 @@ const char *fragmentShaderSource = "#version 130\n"
 
 unsigned int VAO, VBO, fragmentShader, vertexShader, shaderProgram;
 
+
 void initShaders() {
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    vertexShader = glCreateShader(GL_VERTEX_SHADER); // create shader
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+    glCompileShader(vertexShader); // compile shader
+
     // check for shader compile errors
     int success;
     char infoLog[512];
@@ -48,10 +50,11 @@ void initShaders() {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
+
     // fragment shader
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER); // create shader
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+    glCompileShader(fragmentShader); // compile shader
     // check for shader compile errors
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if (!success)
@@ -98,7 +101,51 @@ void initShaders() {
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0); 
+    
+    // To apply textures to only a small window for the icon, this bottom part is useful
+        
+}
 
+void generateIcon() {
+    GLuint FBO, textureHolder;
+    // Step 1: Generate and configure framebuffer
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);  // Bind framebuffer
+
+    // Step 2: Create texture to store the rendering output
+    glGenTextures(1, &textureHolder); 
+    glBindTexture(GL_TEXTURE_2D, textureHolder);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 200, 200, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); // Create texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Set texture filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // Step 3: Attach texture to the framebuffer
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureHolder, 0);
+
+    // Step 4: Check if the framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Framebuffer not complete!" << std::endl;
+        return; // Return early if FBO is not complete
+    }
+
+    // Step 5: Clear the framebuffer
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, 200, 200);
+
+    // Step 6: Render to the framebuffer
+    glUseProgram(shaderProgram);   // Use the shader program
+    glBindVertexArray(VAO);       // Bind the vertex array object
+    glDrawArrays(GL_TRIANGLES, 0, 3);  // Render the Triangle
+
+    // Step 7: Unbind framebuffer (back to default framebuffer)
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Step 8: Display the texture in ImGui
+    ImGui::Begin("Shader Preview", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    ImGui::SetWindowPos(ImVec2(0, 420), 0);
+    ImGui::Image(textureHolder, ImVec2(300, 300)); // Display the texture
+    ImGui::End();
+    
 }
 
 GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
@@ -149,7 +196,7 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
     ImGui::End();
 }
 
-void generateWindows(GLFWwindow* window,int &displayW, int &displayH, ImVec2 initDisplaySize, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
+void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 initDisplaySize, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
    glfwGetFramebufferSize(window, &displayW, &displayH);
    ImVec2 scale = ImVec2(displayW / initDisplaySize.x, displayH / initDisplaySize.y);
    { // Create window called main and append into it
@@ -239,11 +286,10 @@ void RenderGUI(GLFWwindow* window,ImVec2 initDisplaySize) {
       ImGui_ImplGlfw_Sleep(10);
       continue;
     }
-    
-    glUseProgram(shaderProgram);
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    ImVec2 regionMin = ImVec2(-500, -500);  // Bottom-left corner
+    ImVec2 regionMax = ImVec2(500, 500);  // Top-right corner
+    
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -251,13 +297,18 @@ void RenderGUI(GLFWwindow* window,ImVec2 initDisplaySize) {
     
     // Window contents are in the generateWindows() function (use Begin/End pair to create a named window)
     generateWindows(window, display_h, display_w, initDisplaySize, state);
-    
+
+    generateIcon();
+
     ImGui::Render();
     glfwGetFramebufferSize(window, &display_w, &display_h);
+
     glViewport(0, 0, display_w, display_h);
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());\
+
+
     glfwSwapBuffers(window);
   }
 
