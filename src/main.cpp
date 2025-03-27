@@ -15,6 +15,11 @@
 #include <cstring>
 #include <re2/re2.h> // re2 test checks out
 
+#include <glm/glm.hpp> //opengl matrix math, the one below and the one below that one too
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
@@ -24,10 +29,10 @@ static void glfw_error_callback(int error, const char* description)
 
 const char *vertexShaderSource = "#version 130\n"
     "in vec3 aPos;\n"
-    "uniform vec2 wobble;\n"
+    "uniform mat4 transform;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x+wobble.x,aPos.y+wobble.y,aPos.z, 1.0);\n"
+    "   gl_Position = transform * vec4(aPos, 1.0);\n"
     "}\n";
 const char *fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
@@ -38,6 +43,8 @@ const char *fragmentShaderSource = "#version 130\n"
     "}\n";
 
 GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
+
+glm::mat4 trans; // initialize identity matrix
 
 float vertices[] = {
     -0.5f,  0.5f, 0.0f, // bottom left 
@@ -192,11 +199,15 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     glUseProgram(shaderProgram);
     float timeValue = glfwGetTime();
     int Location;
+    trans = glm::mat4(1.0f);
 
     //vertex shader uniform arithmetic
     
-    Location = glGetUniformLocation(shaderProgram, "wobble");
-    glUniform2f(Location, cos(timeValue*4)/3-0.04, sin(timeValue*4)/3); //computers suck at floating point arithmetic
+    Location = glGetUniformLocation(shaderProgram, "transform");
+    trans = glm::translate(trans, glm::vec3(cos(timeValue * 4) / 3 - 0.04, sin(timeValue * 4) / 3, 0.0f));
+    trans = glm::scale(trans, glm::vec3(0.7f, 0.7f, 0.7f));
+    trans = glm::rotate(trans, timeValue*10, glm::vec3(0.0f, 0.0f, 1.0f));
+    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(trans)); //computers suck at floating point arithmetic
     
     //fragment shader uniform arithmetic
     Location = glGetUniformLocation(shaderProgram, "color");
@@ -208,9 +219,9 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     ImVec2 scale = ImVec2(displaySize.x / InitDisplaySize.x, displaySize.y / InitDisplaySize.y);
     
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);  // Bind framebuffer
-    glViewport(10, -10, 200, 200);
+    glViewport(10, -10, 250, 250);
     glBindTexture(GL_TEXTURE_2D, textureHolder);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 200, 200, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); // Create texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 250, 250, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); // Create texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Set texture filtering
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     // Attach texture to the framebuffer
