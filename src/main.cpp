@@ -126,9 +126,6 @@ void initShaders() {
         return; // Return early if FBO is not complete
     }
 
-    // Clear the framebuffer
-    glClear(GL_COLOR_BUFFER_BIT);
-
 }
 
 GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
@@ -218,6 +215,13 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     // Attach texture to the framebuffer
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureHolder, 0);
+    
+    
+    // if you remove the clear framebuffer code, you get a trail on the square since it never gets cleared
+
+    // Clear the framebuffer
+    glClear(GL_COLOR_BUFFER_BIT); 
+
 
     // Render to the framebuffer
     glUseProgram(shaderProgram);   // Use the shader program
