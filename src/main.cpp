@@ -20,11 +20,14 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
+//opengl icon variables
+
 const char *vertexShaderSource = "#version 130\n"
     "in vec3 aPos;\n"
+    "uniform vec2 wobble;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos, 1.0);\n"
+    "   gl_Position = vec4(aPos.x+wobble.x,aPos.y+wobble.y,aPos.z, 1.0);\n"
     "}\n";
 const char *fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
@@ -33,8 +36,20 @@ const char *fragmentShaderSource = "#version 130\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n";
 
-unsigned int VAO, VBO, fragmentShader, vertexShader, shaderProgram;
+unsigned int VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram;
 
+float vertices[] = {
+    -0.5f,  0.5f, 0.0f, // bottom left 
+     0.5f,  0.5f, 0.0f, // bottom right
+     0.5f, -0.5f, 0.0f, // top right
+    -0.5f, -0.5f, 0.0f  // top left
+}; 
+GLuint indices[] = {
+     0, 1, 3, //first triangle
+     1, 2, 3  //second triangles
+};
+
+//end of opengl icon variables
 
 void initShaders() {
     vertexShader = glCreateShader(GL_VERTEX_SHADER); // create shader
@@ -78,19 +93,19 @@ void initShaders() {
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left  
-         0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
-    }; 
+    
+    glGenBuffers(1, &EBO); //generate the Element Buffer Object
+    glGenVertexArrays(1, &VAO); //generate the Vertex Array Object
+    glGenBuffers(1, &VBO); // generate the Vertex Buffer Object (the only one for now)
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
-
+    
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -100,7 +115,6 @@ void initShaders() {
 
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0); 
         
 }
 
@@ -161,6 +175,17 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
 
     After rendering it, it puts the texture into an ImGui tab using ImGui::image
     */
+    
+    //uniform arithmetic
+    glUseProgram(shaderProgram);
+
+    float timeValue = glfwGetTime();
+    int vertexWobbleLocation = glGetUniformLocation(shaderProgram, "wobble");
+    glUniform2f(vertexWobbleLocation, cos(timeValue*4)/3-0.04, sin(timeValue*4)/3); //computers suck at floating point arithmetic
+    
+    glUseProgram(0);
+
+    //end of uniform arithmetic
 
     ImVec2 scale = ImVec2(displaySize.x / InitDisplaySize.x, displaySize.y / InitDisplaySize.y);
 
@@ -192,7 +217,7 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     // Render to the framebuffer
     glUseProgram(shaderProgram);   // Use the shader program
     glBindVertexArray(VAO);       // Bind the vertex array object
-    glDrawArrays(GL_TRIANGLES, 0, 3);  // Render the Triangle
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);  // Render the Triangle
 
     // Unbind framebuffer (back to default framebuffer)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
