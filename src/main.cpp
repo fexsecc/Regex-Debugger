@@ -31,12 +31,13 @@ const char *vertexShaderSource = "#version 130\n"
     "}\n";
 const char *fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
+    "uniform vec3 color;"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "   FragColor = vec4(color, 1.0f);\n"
     "}\n";
 
-unsigned int VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram;
+GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
 
 float vertices[] = {
     -0.5f,  0.5f, 0.0f, // bottom left 
@@ -112,10 +113,22 @@ void initShaders() {
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    
+    // Generate and configure framebuffer
+    glGenFramebuffers(1, &FBO);
 
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-        
+    // Create texture to store the rendering output
+    glGenTextures(1, &textureHolder); 
+    
+    // Check if the framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Framebuffer not complete!" << std::endl;
+        return; // Return early if FBO is not complete
+    }
+
+    // Clear the framebuffer
+    glClear(GL_COLOR_BUFFER_BIT);
+
 }
 
 GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
@@ -177,50 +190,40 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     */
     
     //uniform arithmetic
+
+    //"global" variables
     glUseProgram(shaderProgram);
-
     float timeValue = glfwGetTime();
-    int vertexWobbleLocation = glGetUniformLocation(shaderProgram, "wobble");
-    glUniform2f(vertexWobbleLocation, cos(timeValue*4)/3-0.04, sin(timeValue*4)/3); //computers suck at floating point arithmetic
-    
-    glUseProgram(0);
+    int Location;
 
+    //vertex shader uniform arithmetic
+    
+    Location = glGetUniformLocation(shaderProgram, "wobble");
+    glUniform2f(Location, cos(timeValue*4)/3-0.04, sin(timeValue*4)/3); //computers suck at floating point arithmetic
+    
+    //fragment shader uniform arithmetic
+    Location = glGetUniformLocation(shaderProgram, "color");
+    glUniform3f(Location, sin(timeValue) / 2.0 + 0.5, cos(timeValue) / 2.0 + 0.5, sin(timeValue) / 4.0 + cos(timeValue) / 4.0 + 0.5);
+
+    glUseProgram(0);
     //end of uniform arithmetic
 
     ImVec2 scale = ImVec2(displaySize.x / InitDisplaySize.x, displaySize.y / InitDisplaySize.y);
-
-    GLuint FBO, textureHolder;
-    // Generate and configure framebuffer
-    glGenFramebuffers(1, &FBO);
+    
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);  // Bind framebuffer
-
-    // Create texture to store the rendering output
-    glGenTextures(1, &textureHolder); 
+    glViewport(10, -10, 200, 200);
     glBindTexture(GL_TEXTURE_2D, textureHolder);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 200, 200, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); // Create texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Set texture filtering
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
     // Attach texture to the framebuffer
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureHolder, 0);
-
-    // Check if the framebuffer is complete
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "Framebuffer not complete!" << std::endl;
-        return; // Return early if FBO is not complete
-    }
-
-    // Clear the framebuffer
-    glClear(GL_COLOR_BUFFER_BIT);
-    glViewport(0, 0, 200, 200);
 
     // Render to the framebuffer
     glUseProgram(shaderProgram);   // Use the shader program
     glBindVertexArray(VAO);       // Bind the vertex array object
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);  // Render the Triangle
-
-    // Unbind framebuffer (back to default framebuffer)
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
 
     // Display the texture in ImGui
     ImGui::Begin("Icon", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -229,6 +232,9 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     ApplyScale("Icon", ImVec2(300,300), scale);
     ImGui::End();
     
+    // Unbind framebuffer (back to default framebuffer)
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 
