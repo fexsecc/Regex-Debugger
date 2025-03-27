@@ -203,12 +203,12 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
 
     //vertex shader uniform arithmetic
     
-    Location = glGetUniformLocation(shaderProgram, "transform");
-    trans = glm::translate(trans, glm::vec3(cos(timeValue * 4) / 3 - 0.04, sin(timeValue * 4) / 3, 0.0f));
-    trans = glm::scale(trans, glm::vec3(0.7f, 0.7f, 0.7f));
-    trans = glm::rotate(trans, timeValue*10, glm::vec3(0.0f, 0.0f, 1.0f));
-    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(trans)); //computers suck at floating point arithmetic
-    
+    Location = glGetUniformLocation(shaderProgram, "transform"); //using a transform matrix
+    trans = glm::translate(trans, glm::vec3(cos(timeValue * 4) / 3 - 0.04, sin(timeValue * 4) / 3, 0.0f)); //computers suck at floating point arithmetic
+    trans = glm::scale(trans, glm::vec3(0.9f, 0.9f, 0.9f));
+    trans = glm::rotate(trans, tan(timeValue*3), glm::vec3(0.0f, 0.0f, 1.0f));
+    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(trans));
+
     //fragment shader uniform arithmetic
     Location = glGetUniformLocation(shaderProgram, "color");
     glUniform3f(Location, sin(timeValue) / 2.0 + 0.5, cos(timeValue) / 2.0 + 0.5, sin(timeValue) / 4.0 + cos(timeValue) / 4.0 + 0.5);
