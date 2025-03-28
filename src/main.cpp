@@ -27,21 +27,24 @@ static void glfw_error_callback(int error, const char* description)
 
 //opengl icon variables
 
-const char *vertexShaderSource = "#version 130\n"
+const char* vertexShaderSource = "#version 130\n"
     "in vec3 aPos;\n"
+    "out vec3 cPos;\n"
     "uniform mat4 model;\n"
     "uniform mat4 view;\n"
     "uniform mat4 projection;\n"
     "void main()\n"
     "{\n"
+    "   cPos=aPos;\n"
     "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
     "}\n";
 const char* fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
+    "in vec3 cPos;\n"
     "uniform vec3 color;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(color, 1.0f);\n"
+    "   FragColor = vec4(cPos.xyz, 1.0f);\n"
     "}\n";
 
 GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
@@ -138,6 +141,11 @@ void initShaders() {
         return; // Return early if FBO is not complete
     }
     
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // if you remove the clear framebuffer code, you get a trail on the polygon since it never gets cleared
+    glEnable(GL_DEPTH_TEST);
+
 }
 
 GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
@@ -209,15 +217,8 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     // Attach texture to the framebuffer
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureHolder, 0);
     
-    
-    // if you remove the clear framebuffer code, you get a trail on the polygon since it never gets cleared
-
-    
-    glEnable(GL_DEPTH_TEST);
-
     // Clear the framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
     //uniform arithmetic
 
@@ -238,7 +239,7 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     Location = glGetUniformLocation(shaderProgram, "view"); // view transform sets the camera
     GLfloat camerax = cos(timeValue) * 3;
     GLfloat cameraz = sin(timeValue) * 3;
-    view = glm::lookAt(glm::vec3(camerax, 0.0f, cameraz), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)); // creates a "camera" (a separate xyz coordinate system that simulates a camera)
+    view = glm::lookAt(glm::vec3(camerax, 1.0f, cameraz), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)); // creates a "camera" (a separate xyz coordinate system that simulates a camera)
     glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(view));
 
     Location = glGetUniformLocation(shaderProgram, "projection"); //projection matrix sets the view mode to "perspective" (so things look smaller further away)
@@ -250,7 +251,7 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     glUniform3f(Location, sin(timeValue) / 2.0 + 0.5, cos(timeValue) / 2.0 + 0.5, sin(timeValue) / 4.0 + cos(timeValue) / 4.0 + 0.5);
 
     glUseProgram(0);
-    
+
     //end of uniform arithmetic
 
 
