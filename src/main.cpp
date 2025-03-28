@@ -29,19 +29,22 @@ static void glfw_error_callback(int error, const char* description)
 
 const char *vertexShaderSource = "#version 130\n"
     "in vec3 aPos;\n"
+    "out vec3 cPos;\n"
     "uniform mat4 model;\n"
     "uniform mat4 view;\n"
     "uniform mat4 projection;\n"
     "void main()\n"
     "{\n"
+    "   cPos=aPos;\n"
     "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
     "}\n";
-const char *fragmentShaderSource = "#version 130\n"
+const char* fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
     "uniform vec3 color;\n"
+    "in vec3 cPos;"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(color, 1.0f);\n"
+    "   FragColor = vec4(cPos.zyx, 1.0f);\n"
     "}\n";
 
 GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
@@ -49,17 +52,17 @@ GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureH
 glm::mat4 model, view, projection; // initialize identity matrix
 
 float vertices[] = {
-    0.0f, 0.5f, 0.0f,
-    0.5f,-0.5f, 0.0f,
-   -0.5f,-0.5f, 0.0f,
-    0.0f, 0.0f, 0.5f
+    0.0f, 0.7f, 0.0f,
+    0.6f,-0.5f, 0.0f,
+   -0.6f,-0.5f, 0.0f,
+    0.0f, 0.0f, 1.0f
 };
 
 GLuint indices[] = {
      0, 1, 2, //first triangle
      1, 2, 3,
-     0, 1, 3,
-     0, 2, 3
+     2, 3, 0,
+     3, 0, 1,
 };
 
 //end of opengl icon variables
@@ -138,8 +141,6 @@ void initShaders() {
         return; // Return early if FBO is not complete
     }
     
-    glEnable(GL_DEPTH_TEST);
-
 }
 
 GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
@@ -199,37 +200,6 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
 
     After rendering it, it puts the texture into an ImGui tab using ImGui::image
     */
-    
-    //uniform arithmetic
-
-    //"global" variables
-    glUseProgram(shaderProgram);
-    float timeValue = glfwGetTime();
-    int Location;
-    model = glm::mat4(1.0f);
-    view = glm::mat4(1.0f);
-    projection = glm::mat4(1.0f);
-    //vertex shader uniform arithmetic
-    
-    Location = glGetUniformLocation(shaderProgram, "model"); //using a model matrix to transform the vertices
-    model = glm::rotate(model, glm::radians(55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    model = glm::rotate(model, timeValue, glm::vec3(0.0f, 0.0f, 1.0f));
-
-    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(model));
-    Location = glGetUniformLocation(shaderProgram, "view"); // view transform sets the camera position
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(view));
-
-    Location = glGetUniformLocation(shaderProgram, "projection"); //projection matrix sets the view mode to "perspective" (so things look smaller further away)
-    projection = glm::perspective(glm::radians(45.0f), 200.0f / 200.0f, 0.1f, 100.0f);
-    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(projection));
-
-    //fragment shader uniform arithmetic
-    Location = glGetUniformLocation(shaderProgram, "color");
-    glUniform3f(Location, sin(timeValue) / 2.0 + 0.5, cos(timeValue) / 2.0 + 0.5, sin(timeValue) / 4.0 + cos(timeValue) / 4.0 + 0.5);
-
-    glUseProgram(0);
-    //end of uniform arithmetic
 
     ImVec2 scale = ImVec2(displaySize.x / InitDisplaySize.x, displaySize.y / InitDisplaySize.y);
     
@@ -243,17 +213,57 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureHolder, 0);
     
     
-    // if you remove the clear framebuffer code, you get a trail on the square since it never gets cleared
+    // if you remove the clear framebuffer code, you get a trail on the polygon since it never gets cleared
+
+    
+    glEnable(GL_DEPTH_TEST);
 
     // Clear the framebuffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    // Render to the framebuffer
-    glUseProgram(shaderProgram);   // Use the shader program
-    glBindVertexArray(VAO);       // Bind the vertex array object
-    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);  // Render the Triangle
+    //uniform arithmetic
 
+    //"global" variables
+    glUseProgram(shaderProgram);
+    float timeValue = glfwGetTime();
+    int Location;
+    for (int i = 0; i < 3; ++i) {
+        model = glm::mat4(1.0f);
+        view = glm::mat4(1.0f);
+        projection = glm::mat4(1.0f);
+        //vertex shader uniform arithmetic
+
+        Location = glGetUniformLocation(shaderProgram, "model"); //using a model matrix to transform the vertices
+        model = glm::rotate(model, glm::radians(55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, timeValue, glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f)); //scale setter
+        model = glm::translate(model, glm::vec3(i, i, i));
+        glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(model));
+        Location = glGetUniformLocation(shaderProgram, "view"); // view transform sets the camera position
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(view));
+
+        Location = glGetUniformLocation(shaderProgram, "projection"); //projection matrix sets the view mode to "perspective" (so things look smaller further away)
+        projection = glm::perspective(glm::radians(45.0f), 200.0f / 200.0f, 0.1f, 100.0f);
+        glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(projection));
+
+        //fragment shader uniform arithmetic
+        Location = glGetUniformLocation(shaderProgram, "color");
+        glUniform3f(Location, sin(timeValue) / 2.0 + 0.5, cos(timeValue) / 2.0 + 0.5, sin(timeValue) / 4.0 + cos(timeValue) / 4.0 + 0.5);
+
+        glUseProgram(0);
+    
+     //end of uniform arithmetic
+
+
+        // Render to the framebuffer
+        glUseProgram(shaderProgram);   // Use the shader program
+        glBindVertexArray(VAO);       // Bind the vertex array object
+
+        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);  // Render the Triangle
+    }
+    
     // Display the texture in ImGui
     ImGui::Begin("Icon", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
     ImGui::SetWindowPos(ImVec2(0, 420*scale.y), 0);
