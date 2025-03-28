@@ -29,22 +29,19 @@ static void glfw_error_callback(int error, const char* description)
 
 const char *vertexShaderSource = "#version 130\n"
     "in vec3 aPos;\n"
-    "out vec3 cPos;\n"
     "uniform mat4 model;\n"
     "uniform mat4 view;\n"
     "uniform mat4 projection;\n"
     "void main()\n"
     "{\n"
-    "   cPos=aPos;\n"
     "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
     "}\n";
 const char* fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
     "uniform vec3 color;\n"
-    "in vec3 cPos;"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(cPos.zyx, 1.0f);\n"
+    "   FragColor = vec4(color, 1.0f);\n"
     "}\n";
 
 GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
@@ -228,41 +225,40 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     glUseProgram(shaderProgram);
     float timeValue = glfwGetTime();
     int Location;
-    for (int i = 0; i < 3; ++i) {
-        model = glm::mat4(1.0f);
-        view = glm::mat4(1.0f);
-        projection = glm::mat4(1.0f);
-        //vertex shader uniform arithmetic
+    model = glm::mat4(1.0f);
+    view = glm::mat4(1.0f);
+    projection = glm::mat4(1.0f);
+    //vertex shader uniform arithmetic
 
-        Location = glGetUniformLocation(shaderProgram, "model"); //using a model matrix to transform the vertices
-        model = glm::rotate(model, glm::radians(55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, timeValue, glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f)); //scale setter
-        model = glm::translate(model, glm::vec3(i, i, i));
-        glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(model));
-        Location = glGetUniformLocation(shaderProgram, "view"); // view transform sets the camera position
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(view));
+    Location = glGetUniformLocation(shaderProgram, "model"); //using a model matrix to transform the vertices (default transforms)
+    model = glm::rotate(model, glm::radians(65.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f)); //scale setter
 
-        Location = glGetUniformLocation(shaderProgram, "projection"); //projection matrix sets the view mode to "perspective" (so things look smaller further away)
-        projection = glm::perspective(glm::radians(45.0f), 200.0f / 200.0f, 0.1f, 100.0f);
-        glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(model));
+    Location = glGetUniformLocation(shaderProgram, "view"); // view transform sets the camera
+    GLfloat camerax = cos(timeValue) * 3;
+    GLfloat cameraz = sin(timeValue) * 3;
+    view = glm::lookAt(glm::vec3(camerax, 0.0f, cameraz), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)); // creates a "camera" (a separate xyz coordinate system that simulates a camera)
+    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(view));
 
-        //fragment shader uniform arithmetic
-        Location = glGetUniformLocation(shaderProgram, "color");
-        glUniform3f(Location, sin(timeValue) / 2.0 + 0.5, cos(timeValue) / 2.0 + 0.5, sin(timeValue) / 4.0 + cos(timeValue) / 4.0 + 0.5);
+    Location = glGetUniformLocation(shaderProgram, "projection"); //projection matrix sets the view mode to "perspective" (so things look smaller further away)
+    projection = glm::perspective(glm::radians(45.0f), 200.0f / 200.0f, 0.1f, 100.0f);
+    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(projection));
 
-        glUseProgram(0);
+    //fragment shader uniform arithmetic (not used rn)
+    Location = glGetUniformLocation(shaderProgram, "color");
+    glUniform3f(Location, sin(timeValue) / 2.0 + 0.5, cos(timeValue) / 2.0 + 0.5, sin(timeValue) / 4.0 + cos(timeValue) / 4.0 + 0.5);
+
+    glUseProgram(0);
     
-     //end of uniform arithmetic
+    //end of uniform arithmetic
 
 
-        // Render to the framebuffer
-        glUseProgram(shaderProgram);   // Use the shader program
-        glBindVertexArray(VAO);       // Bind the vertex array object
+    // Render to the framebuffer
+    glUseProgram(shaderProgram);   // Use the shader program
+    glBindVertexArray(VAO);       // Bind the vertex array object
 
-        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);  // Render the Triangle
-    }
+    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);  // Render the Triangle
     
     // Display the texture in ImGui
     ImGui::Begin("Icon", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
