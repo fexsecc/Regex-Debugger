@@ -29,14 +29,16 @@ static void glfw_error_callback(int error, const char* description)
 
 const char *vertexShaderSource = "#version 130\n"
     "in vec3 aPos;\n"
-    "uniform mat4 transform;\n"
+    "uniform mat4 model;\n"
+    "uniform mat4 view;\n"
+    "uniform mat4 projection;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = transform * vec4(aPos, 1.0);\n"
+    "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
     "}\n";
 const char *fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
-    "uniform vec3 color;"
+    "uniform vec3 color;\n"
     "void main()\n"
     "{\n"
     "   FragColor = vec4(color, 1.0f);\n"
@@ -44,7 +46,7 @@ const char *fragmentShaderSource = "#version 130\n"
 
 GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
 
-glm::mat4 trans; // initialize identity matrix
+glm::mat4 model, view, projection; // initialize identity matrix
 
 float vertices[] = {
     -0.5f,  0.5f, 0.0f, // bottom left 
@@ -199,15 +201,23 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     glUseProgram(shaderProgram);
     float timeValue = glfwGetTime();
     int Location;
-    trans = glm::mat4(1.0f);
-
+    model = glm::mat4(1.0f);
+    view = glm::mat4(1.0f);
+    projection = glm::mat4(1.0f);
     //vertex shader uniform arithmetic
     
-    Location = glGetUniformLocation(shaderProgram, "transform"); //using a transform matrix
-    trans = glm::translate(trans, glm::vec3(cos(timeValue * 4) / 3 - 0.04, sin(timeValue * 4) / 3, 0.0f)); //computers suck at floating point arithmetic
-    trans = glm::scale(trans, glm::vec3(0.9f, 0.9f, 0.9f));
-    trans = glm::rotate(trans, tan(timeValue*3), glm::vec3(0.0f, 0.0f, 1.0f));
-    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(trans));
+    Location = glGetUniformLocation(shaderProgram, "model"); //using a model matrix to transform the vertices
+    model = glm::rotate(model, glm::radians(55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, timeValue, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(model));
+    Location = glGetUniformLocation(shaderProgram, "view"); // view transform sets the camera position
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(view));
+
+    Location = glGetUniformLocation(shaderProgram, "projection"); //projection matrix sets the view mode to "perspective" (so things look smaller further away)
+    projection = glm::perspective(glm::radians(45.0f), 200.0f / 200.0f, 0.1f, 100.0f);
+    glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(projection));
 
     //fragment shader uniform arithmetic
     Location = glGetUniformLocation(shaderProgram, "color");
