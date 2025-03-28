@@ -44,7 +44,7 @@ const char* fragmentShaderSource = "#version 130\n"
     "uniform vec3 color;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(cPos.xyz, 1.0f);\n"
+    "   FragColor = vec4(cPos.xyz/2.0+color.xyz/2.0, 1.0f);\n"
     "}\n";
 
 GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
@@ -237,8 +237,8 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
 
     glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(model));
     Location = glGetUniformLocation(shaderProgram, "view"); // view transform sets the camera
-    GLfloat camerax = cos(timeValue) * 3;
-    GLfloat cameraz = sin(timeValue) * 3;
+    GLfloat camerax = cos(timeValue) * 2;
+    GLfloat cameraz = sin(timeValue) * 2;
     view = glm::lookAt(glm::vec3(camerax, 1.0f, cameraz), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)); // creates a "camera" (a separate xyz coordinate system that simulates a camera)
     glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(view));
 
