@@ -49,14 +49,17 @@ GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureH
 glm::mat4 model, view, projection; // initialize identity matrix
 
 float vertices[] = {
-    -0.5f,  0.5f, 0.0f, // bottom left 
-     0.5f,  0.5f, 0.0f, // bottom right
-     0.5f, -0.5f, 0.0f, // top right
-    -0.5f, -0.5f, 0.0f  // top left
-}; 
+    0.0f, 0.5f, 0.0f,
+    0.5f,-0.5f, 0.0f,
+   -0.5f,-0.5f, 0.0f,
+    0.0f, 0.0f, 0.5f
+};
+
 GLuint indices[] = {
-     0, 1, 3, //first triangle
-     1, 2, 3  //second triangles
+     0, 1, 2, //first triangle
+     1, 2, 3,
+     0, 1, 3,
+     0, 2, 3
 };
 
 //end of opengl icon variables
@@ -134,6 +137,8 @@ void initShaders() {
         std::cout << "Framebuffer not complete!" << std::endl;
         return; // Return early if FBO is not complete
     }
+    
+    glEnable(GL_DEPTH_TEST);
 
 }
 
@@ -241,14 +246,13 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     // if you remove the clear framebuffer code, you get a trail on the square since it never gets cleared
 
     // Clear the framebuffer
-    glClear(GL_COLOR_BUFFER_BIT); 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 
     // Render to the framebuffer
     glUseProgram(shaderProgram);   // Use the shader program
     glBindVertexArray(VAO);       // Bind the vertex array object
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);  // Render the Triangle
-    
+    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);  // Render the Triangle
 
     // Display the texture in ImGui
     ImGui::Begin("Icon", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
