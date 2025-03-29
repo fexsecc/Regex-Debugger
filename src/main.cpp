@@ -3,8 +3,14 @@
 #include <windows.h>
 #include <wingdi.h>
 #endif
+
+//program functionality libraries
 #include <iostream>
 #include <stdio.h>
+#include <unordered_map>
+#include <cstring>
+
+//graphics libraries(headers)
 #include <glad/glad.h>
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
@@ -12,7 +18,6 @@
 #include <GLFW/glfw3.h>
 #include <imgui_impl_opengl3_loader.h>
 #include "GUI_handler.h"
-#include <cstring>
 #include <re2/re2.h> // re2 test checks out
 
 #include <glm/glm.hpp> //opengl matrix math, the one below and the one below that one too
@@ -25,7 +30,7 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-//opengl icon variables
+//start of opengl icon variables
 
 const char* vertexShaderSource = "#version 130\n"
     "in vec3 aPos;\n"
@@ -38,6 +43,7 @@ const char* vertexShaderSource = "#version 130\n"
     "   cPos=aPos;\n"
     "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
     "}\n";
+
 const char* fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
     "in vec3 cPos;\n"
@@ -112,6 +118,7 @@ GLuint indices[] = { //cube triangles
 };
 
 //end of opengl icon variables
+
 
 void initShaders() {
     vertexShader = glCreateShader(GL_VERTEX_SHADER); // create shader
@@ -234,6 +241,7 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
   return window;
 }
 
+//scaling function for ImGui windows
 void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
     ImGui::Begin(name);
 
@@ -242,19 +250,117 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
     ImGui::End();
 }
 
-void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) { 
-    
-    /*
-    This function puts a texture into a frameBuffer using a frameBufferObject(FBO), 
-    
-    Then it generates an empty image using textureHolder and applies the shader to it.
+//the below function is for the Explanation Window functionality
+void Explain(char regexQuery[]) {
+  
+}
 
-    After rendering it, it puts the texture into an ImGui tab using ImGui::image
-    */
+//the below function is for the Valid Input Window functionality
+void generateValidInput(char regexQuery[]) {
 
-    ImVec2 scale = ImVec2(displaySize.x / InitDisplaySize.x, displaySize.y / InitDisplaySize.y);
+}
+
+
+//start of window generation functions
+
+void generateMainWindow(ImVec2 scale) {
+   ImGui::Begin("main",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus); 
+   ImGui::SetWindowPos(ImVec2(0, 0), 0);
+   ApplyScale("main",ImVec2(1280,720), scale); //here the initDisplaySize is the original size of the window
+   ImGui::Text("REGEX_DBG"); // Display text (you can use format strings like printf)
+   ImGui::End();
+}
+
+void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery[]) {
+   ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+   if (ImGui::Button("Go back", ImVec2(120 * scale.x, 30 * scale.y)))
+     state[0] = 0;
+   ImGui::Text("This is the explanation window!");
+   Explain(regexQuery);
+   ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
+   ApplyScale("explanationWindow", ImVec2(900, 420), scale);
+   ImGui::End();
+}
+
+void generateFocusedValidInputWindow(ImVec2 scale, int state[], char regexQuery[]) {
+   ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
+   if (ImGui::Button("Go back", ImVec2(120 * scale.x, 30 * scale.y)))
+     state[0] = 0;
+   ImGui::Text("This is the valid input window!");
+   ImGui::SetWindowPos(ImVec2(380*scale.x,20+300*scale.y), 0);
+   ApplyScale("1", ImVec2(900,420), scale);
+   ImGui::End();
+}
+
+void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
+   
+   //create the valid input window
+
+   ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
+   if (ImGui::Button("Focus VI window", ImVec2(120 * scale.x, 30 * scale.y)))
+     state[0] = 2;
+   ImGui::Text("This is the valid input window!");
+   ImGui::SetWindowPos(ImVec2(380*scale.x,20+300*scale.y), 0);
+   ApplyScale("1", ImVec2(450,420), scale);
+   ImGui::End();
+
+   // create the explanation window
+
+   ImGui::Begin("3", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+   if (ImGui::Button("Focus Ex window", ImVec2(120 * scale.x, 30 * scale.y)))
+     state[0] = 1;
+   ImGui::Text("This is the explanation window!");
+   ImGui::SetWindowPos(ImVec2(830 * scale.x, 20 + 300 * scale.y), 0);
+   ApplyScale("3", ImVec2(450, 420), scale);
+   ImGui::End();
+
+}
+
+//The below function generates the above windows
+void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 initDisplaySize, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
+   glfwGetFramebufferSize(window, &displayW, &displayH);
+   ImVec2 scale = ImVec2(displayW / initDisplaySize.x, displayH / initDisplaySize.y);
+    
+   generateMainWindow(scale); // generate main window and append into it
+    
+   static char buf[10000] = "Example: ^([0-9])\\1{3}$"; //this is the Regex Input tab
+   {
+      ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+      ImGui::InputText("<--regexInput", buf, IM_ARRAYSIZE(buf));
+      ImGui::TextWrapped(buf);
+      ImGui::SetWindowPos(ImVec2(380 * scale.x, 20), 0);
+      ApplyScale("Input Window", ImVec2(900, 300), scale);
+      ImGui::End();
+   }
+   switch (state[0]) {
+     case 1:
+     { //focused explanation window
+       generateFocusedExplanationWindow(scale, state, buf);
+       break;
+     }
+     case 2:
+     { //focused valid input window
+       generateFocusedValidInputWindow(scale, state, buf);
+       break;
+     }
+     default:
+     { //both valid input and explanation windows at the same time
+       generateBothVIandEWindows(scale, state, buf);
+       break;
+     }
+   }
+}
+
+//end of window generation functions
+
+
+void initTextureAndViewport() {
     
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);  // Bind framebuffer
+
+    // Clear the framebuffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glViewport(10, -10, 250, 250);
     glBindTexture(GL_TEXTURE_2D, textureHolder);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 250, 250, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); // Create texture
@@ -263,9 +369,9 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     // Attach texture to the framebuffer
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureHolder, 0);
     
-    // Clear the framebuffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
+void performShaderUniformArithmetic() {
     //uniform arithmetic
 
     //"global" variables
@@ -304,7 +410,10 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
 
     //end of uniform arithmetic
 
+}
 
+void drawAndDisplayTexture(ImVec2 scale) {
+    
     // Render to the framebuffer
     glUseProgram(shaderProgram);   // Use the shader program
     glBindVertexArray(VAO);       // Bind the vertex array object
@@ -318,85 +427,33 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     ApplyScale("Icon", ImVec2(300,300), scale);
     ImGui::End();
     
+}
+
+//the function below generates the floating 3d model using the above three functions
+void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
+    
+    /*
+    This function puts a texture into a frameBuffer using a frameBufferObject(FBO), 
+    
+    Then it generates an empty image using textureHolder and applies the shader to it.
+
+    After rendering and drawing the texture, this function puts the texture into an ImGui tab using ImGui::Image
+    */
+
+    ImVec2 scale = ImVec2(displaySize.x / InitDisplaySize.x, displaySize.y / InitDisplaySize.y);
+    
+    initTextureAndViewport(); 
+    
+    performShaderUniformArithmetic();
+
+    drawAndDisplayTexture(scale);
+
     // Unbind framebuffer (back to default framebuffer)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
-
-void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 initDisplaySize, int state[]) { //This is where you put secondary windows (tabs,buttons,tables,checkboxes and other windows)
-   glfwGetFramebufferSize(window, &displayW, &displayH);
-   ImVec2 scale = ImVec2(displayW / initDisplaySize.x, displayH / initDisplaySize.y);
-   { // Create window called main and append into it
-     ImGui::Begin("main",nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus); 
-     ImGui::SetWindowPos(ImVec2(0, 0), 0);
-     ApplyScale("main",ImVec2(1280,720), scale); //here the initDisplaySize is the original size of the window
-     ImGui::Text("REGEX_DBG"); // Display text (you can use format strings like printf)
-     ImGui::End();
-   }
-   static char buf[10000] = "Example: ^([0-9])\\1{3}$"; //this is the Regex Input tab
-   {
-       ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
-       ImGui::InputText("<--regexInput", buf, IM_ARRAYSIZE(buf));
-       ImGui::TextWrapped(buf);
-       ImGui::SetWindowPos(ImVec2(380*scale.x,20), 0);
-       ApplyScale("Input Window", ImVec2(900, 300), scale);
-       ImGui::End();
-   }
-   switch (state[0]) {
-     case 1:
-     { //focused explanation window
-
-       //create the explanation window
-       ImGui::Begin("3", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-       if (ImGui::Button("Go back", ImVec2(120 * scale.x, 30 * scale.y)))
-           state[0] = 0;
-       ImGui::Text("This is the explanation window!");
-       ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
-       ApplyScale("3", ImVec2(900, 420), scale);
-       ImGui::End();
-       break;
-     }
-     case 2:
-     { //focused valid input window
-
-       //create the valid input window
-       ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
-       if (ImGui::Button("Go back", ImVec2(120 * scale.x, 30 * scale.y)))
-           state[0] = 0;
-       ImGui::Text("This is the valid input window!");
-       ImGui::SetWindowPos(ImVec2(380*scale.x,20+300*scale.y), 0);
-       ApplyScale("1", ImVec2(900,420), scale);
-       ImGui::End();
-       break;
-     }
-     default:
-     { //both valid input and explanation windows at the same time
-       
-       //create the valid input window
-
-       ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
-       if (ImGui::Button("Focus VI window", ImVec2(120 * scale.x, 30 * scale.y)))
-           state[0] = 2;
-       ImGui::Text("This is the valid input window!");
-       ImGui::SetWindowPos(ImVec2(380*scale.x,20+300*scale.y), 0);
-       ApplyScale("1", ImVec2(450,420), scale);
-       ImGui::End();
-
-       // create the explanation window
-
-       ImGui::Begin("3", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-       if (ImGui::Button("Focus Ex window", ImVec2(120 * scale.x, 30 * scale.y)))
-           state[0] = 1;
-       ImGui::Text("This is the explanation window!");
-       ImGui::SetWindowPos(ImVec2(830 * scale.x, 20 + 300 * scale.y), 0);
-       ApplyScale("3", ImVec2(450, 420), scale);
-       ImGui::End();
-       break;
-     }
-   }
-}
-
+//render loop(core function of the whole GUI)
 void RenderGUI(GLFWwindow* window,ImVec2 initDisplaySize) { 
   bool showCoolButton = true;
   ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
@@ -414,9 +471,6 @@ void RenderGUI(GLFWwindow* window,ImVec2 initDisplaySize) {
       ImGui_ImplGlfw_Sleep(10);
       continue;
     }
-
-    ImVec2 regionMin = ImVec2(-500, -500);  // Bottom-left corner
-    ImVec2 regionMax = ImVec2(500, 500);  // Top-right corner
     
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
