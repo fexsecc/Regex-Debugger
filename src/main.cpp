@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <unordered_map>
 #include <cstring>
+#include <string>
 
 //graphics libraries(headers)
 #include <glad/glad.h>
@@ -57,6 +58,11 @@ const char* fragmentShaderSource = "#version 130\n"
 GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
 
 glm::mat4 model, view, projection; // initialize identity matrix
+
+std::unordered_map<char, char*> regexCommandToExplanation = {
+    {'$',"$ asserts position at the end of a line"},
+    {'^',"^ asserts position at start of a line"},
+};
 
 float vertices[] = { //cube
     -0.5f, -0.5f, -0.5f,
@@ -252,12 +258,24 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
 
 //the below function is for the Explanation Window functionality
 void Explain(char regexQuery[]) {
-  
+    ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+
+    char* p;
+    char sep[] = {
+        "$^"
+    };
+    p = strpbrk(regexQuery, sep);
+    while (p != nullptr) {
+        ImGui::BulletText(regexCommandToExplanation[p[0]]);
+        p = strpbrk(p+1, sep);
+    }
+
+    ImGui::End();
 }
 
 //the below function is for the Valid Input Window functionality
 void generateValidInput(char regexQuery[]) {
-
+  
 }
 
 
