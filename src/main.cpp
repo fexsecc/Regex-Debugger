@@ -42,27 +42,73 @@ const char* fragmentShaderSource = "#version 130\n"
     "out vec4 FragColor;\n"
     "in vec3 cPos;\n"
     "uniform vec3 color;\n"
+    "uniform vec3 lightColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(cPos.xyz/2.0+color.xyz/2.0, 1.0f);\n"
+    "   FragColor = vec4((cPos.xyz/2.0+color.xyz/2.0)*lightColor, 1.0f);\n"
     "}\n";
 
 GLuint VAO, VBO, EBO, fragmentShader, vertexShader, shaderProgram, FBO, textureHolder;
 
 glm::mat4 model, view, projection; // initialize identity matrix
 
-float vertices[] = {
-    0.0f, 0.7f, 0.0f,
-    0.6f,-0.5f, 0.0f,
-   -0.6f,-0.5f, 0.0f,
-    0.0f, 0.0f, 1.0f
+float vertices[] = { //cube
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f
 };
 
-GLuint indices[] = {
-     0, 1, 2, //first triangle
-     1, 2, 3,
-     2, 3, 0,
-     3, 0, 1,
+GLuint indices[] = { //cube triangles
+     0, 1, 2, // trio of vertices that form the triangle
+     3, 4, 5,
+     6, 7, 8,
+     9, 10, 11,
+     12, 13, 14,
+     15, 16, 17,
+     18, 19, 20,
+     21, 22, 23,
+     24, 25, 26,
+     27, 28, 29,
+     30, 31, 32,
+     33, 34, 35
 };
 
 //end of opengl icon variables
@@ -141,7 +187,7 @@ void initShaders() {
         return; // Return early if FBO is not complete
     }
     
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // if you remove the clear framebuffer code, you get a trail on the polygon since it never gets cleared
     glEnable(GL_DEPTH_TEST);
@@ -234,21 +280,25 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     Location = glGetUniformLocation(shaderProgram, "model"); //using a model matrix to transform the vertices (default transforms)
     model = glm::rotate(model, glm::radians(65.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f)); //scale setter
-
+    model = glm::translate(model, glm::vec3(sin(timeValue*0.5f) * 5.0f, -cos(timeValue*0.5f) * 5.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(timeValue*300), glm::vec3(1.0f, 1.0f, 1.0f));
     glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(model));
+
     Location = glGetUniformLocation(shaderProgram, "view"); // view transform sets the camera
     GLfloat camerax = cos(timeValue) * 2;
     GLfloat cameraz = sin(timeValue) * 2;
-    view = glm::lookAt(glm::vec3(camerax, 1.0f, cameraz), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)); // creates a "camera" (a separate xyz coordinate system that simulates a camera)
+    view = glm::lookAt(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)); // creates a "camera" (a separate xyz coordinate system that simulates a camera)
     glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(view));
 
     Location = glGetUniformLocation(shaderProgram, "projection"); //projection matrix sets the view mode to "perspective" (so things look smaller further away)
     projection = glm::perspective(glm::radians(45.0f), 200.0f / 200.0f, 0.1f, 100.0f);
     glUniformMatrix4fv(Location, 1, GL_FALSE, glm::value_ptr(projection));
 
-    //fragment shader uniform arithmetic (not used rn)
+    //fragment shader uniform arithmetic
     Location = glGetUniformLocation(shaderProgram, "color");
     glUniform3f(Location, sin(timeValue) / 2.0 + 0.5, cos(timeValue) / 2.0 + 0.5, sin(timeValue) / 4.0 + cos(timeValue) / 4.0 + 0.5);
+    Location = glGetUniformLocation(shaderProgram, "lightColor");
+    glUniform3f(Location, 1.0f, 1.0f, 1.0f); //diffuse light
 
     glUseProgram(0);
 
@@ -259,7 +309,7 @@ void generateIcon(ImVec2 displaySize,ImVec2 InitDisplaySize) {
     glUseProgram(shaderProgram);   // Use the shader program
     glBindVertexArray(VAO);       // Bind the vertex array object
 
-    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);  // Render the Triangle
+    glDrawElements(GL_TRIANGLES, 120, GL_UNSIGNED_INT, 0);  // Render the Triangle
     
     // Display the texture in ImGui
     ImGui::Begin("Icon", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
