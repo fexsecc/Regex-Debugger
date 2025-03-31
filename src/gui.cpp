@@ -251,7 +251,7 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
 //the below function is for the Explanation Window functionality
 void Explain(char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     
     //single character regex expression explanations
 
@@ -335,7 +335,7 @@ void generateMainWindow(ImVec2 scale) {
 
 void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the explanation window!");
@@ -348,7 +348,7 @@ void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery
 
 void generateFocusedValidInputWindow(ImVec2 scale, int state[], char regexQuery[]) {
     ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the valid input window!");
@@ -363,7 +363,7 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     //create the valid input window
 
     ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     if (ImGui::Button("Focus VI window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 2;
     ImGui::Text("This is the valid input window!");
@@ -375,7 +375,7 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     // create the explanation window
 
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     if (ImGui::Button("Focus Ex window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 1;
     ImGui::Text("This is the explanation window!");
