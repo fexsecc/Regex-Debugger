@@ -214,7 +214,7 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
      * the font multiple times with different names and sizes.
      * NOTE: Make sure to follow the naming convention. */
 
-    std::string fontPath = std::filesystem::current_path();
+    std::string fontPath = std::filesystem::current_path().string();
     fontPath += fontRelPath;
     const char* cFontPath = fontPath.c_str();
 
