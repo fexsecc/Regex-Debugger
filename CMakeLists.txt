@@ -20,12 +20,25 @@ find_package(re2 REQUIRED)
 file(GLOB SRC_FILES "src/*.cpp")
 ## Create main executable
 add_executable(regdebug ${SRC_FILES})
-FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/fonts")
+
+## Copy the font over, depending on platform
+if(WIN32)
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/Debug/fonts")
+  elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/Release/fonts")
+  endif()
+else()
+  FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/fonts")
+endif()
+
+## Library Header directories
 target_include_directories(regdebug
   PRIVATE 
     #${STB_INCLUDE_DIRS}
     "${CMAKE_CURRENT_LIST_DIR}/source"
 )
+## Linker libs
 target_link_libraries(
   regdebug
   PRIVATE
@@ -39,11 +52,7 @@ target_link_libraries(
 
 # ============================================================
 
-
+## Custom headers
 target_include_directories(regdebug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR})
