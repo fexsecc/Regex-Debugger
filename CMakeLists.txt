@@ -20,6 +20,7 @@ find_package(re2 REQUIRED)
 file(GLOB SRC_FILES "src/*.cpp")
 ## Create main executable
 add_executable(regdebug ${SRC_FILES})
+FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/fonts")
 target_include_directories(regdebug
   PRIVATE 
     #${STB_INCLUDE_DIRS}
@@ -42,3 +43,7 @@ target_link_libraries(
 target_include_directories(regdebug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR})

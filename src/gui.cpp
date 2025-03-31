@@ -1,8 +1,11 @@
 
+#include <cstring>
 #include <gui.h>
 #include <imgui.h>
+#include <filesystem>
+#include <string>
 
-ImFont* jetfont185;
+ImFont* jetFont185;
 
 void glfw_error_callback(int error, const char* description)
 {
@@ -211,9 +214,14 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
      * the font multiple times with different names and sizes.
      * NOTE: Make sure to follow the naming convention. */
 
+    std::string fontPath = std::filesystem::current_path().string();
+    fontPath += fontRelPath;
+    const char* cFontPath = fontPath.c_str();
+
+
     io.Fonts->AddFontDefault();
-    jetfont185 = io.Fonts->AddFontFromFileTTF("..\\fonts\\JetBrainsMono-Regular.ttf", 18.5f); //crashes
-    IM_ASSERT(jetfont185 != NULL);
+    jetFont185 = io.Fonts->AddFontFromFileTTF(cFontPath, 18.5f);
+    IM_ASSERT(jetFont185 != NULL);
 
     // Setup platform/renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -232,7 +240,7 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
 //scaling function for ImGui windows
 void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
     ImGui::Begin(name);
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
 
     ImGui::SetWindowSize(ImVec2(initSize.x * scale.x, initSize.y * scale.y), 0); //apply scale to the specifically named window
 
@@ -316,7 +324,7 @@ void Explain(char regexQuery[]) {
 //start of window generation functions
 
 void generateMainWindow(ImVec2 scale) {
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     ImGui::Begin("Regex Debugger", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus);
     ImGui::SetWindowPos(ImVec2(0, 0), 0);
     ApplyScale("Regex Debugger", ImVec2(1280, 720), scale); //here the initDisplaySize is the original size of the window
@@ -389,7 +397,7 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
     static char buf[100000] = "^([0-9])\\1{3}$"; //this is the Regex Input tab
     {
         ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
-        ImGui::PushFont(jetfont185);
+        ImGui::PushFont(jetFont185);
         ImGui::InputText("<--regexInput", buf, IM_ARRAYSIZE(buf));
         ImGui::TextWrapped(buf);
         ImGui::SetWindowPos(ImVec2(380 * scale.x, 20), 0);
@@ -487,7 +495,7 @@ void drawAndDisplayTexture(ImVec2 scale) {
 
     // Display the texture in ImGui
     ImGui::Begin("Icon", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     ImGui::SetWindowPos(ImVec2(0, 420 * scale.y), 0);
     ImGui::Image(textureHolder, ImVec2(300 * scale.x, 300 * scale.y)); // Display the texture
     ApplyScale("Icon", ImVec2(300, 300), scale);
