@@ -5,6 +5,12 @@
 #include <filesystem>
 #include <string>
 
+//new imgui definitions
+
+#define WRAPPED_BULLET_TEXT(text) ImGui::TextWrapped("-"); ImGui::SameLine(); ImGui::TextWrapped(text);
+
+//end of new imgui definitions
+
 ImFont* jetFont185;
 
 void glfw_error_callback(int error, const char* description)
@@ -251,7 +257,7 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
 //the below function is for the Explanation Window functionality
 void Explain(char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     
     //single character regex expression explanations
 
@@ -272,49 +278,58 @@ void Explain(char regexQuery[]) {
     p = strpbrk(regexQuery, sep);
     while (p != nullptr) {
         if (regexSingleCharOperatorsExplanation[p[0]])
-            ImGui::BulletText(regexSingleCharOperatorsExplanation[p[0]]);
+            WRAPPED_BULLET_TEXT(regexSingleCharOperatorsExplanation[p[0]]);
         regexSingleCharOperatorsExplanation.erase(p[0]);
         p = strpbrk(p + 1, sep);
     }
     
     //end of single char regex operand explanations
     
-    std::unordered_map<std::string, std::string> regexMultiCharOperatorsExplanation = {
+    std::unordered_map<int8_t, char*> regexMultiCharOperatorsExplanation = {
         // Quantifiers
-        {"","\"{n}\" Matches exactly n times"},
-        {"","\"{n,}\" Matches at least n times"},
-        {"","\"{n,m}\" Matches between n and m times"},
+        {0,"\"{n}\" Matches exactly n times"},
+        {1,"\"{n,}\" Matches at least n times"},
+        {2,"\"{n,m}\" Matches between n and m times"},
         
         // Assertions (Lookaheads & Lookbehinds)
-        {"","\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"},
-        {"","\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"},
-        {"","\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"},
-        {"","\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"},
+        {3,"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"},
+        {4,"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"},
+        {5,"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"},
+        {6,"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"},
 
         // Grouping & Special Constructs
-        {"","\"(?:...)\" Non-capturing group (groups pattern but does not store it)"},
-        {"","\"(?P<name>...)\" Named capturing group (Python, .NET)"},
-        {"","\"(? <name>...)\" Named capturing group (Java, .NET)"},
-        {"","\"(?>...)\" Atomic group (prevents backtracking)"},
+        {7,"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"},
+        {8,"\"(?P<name>...)\" Named capturing group (Python, .NET)"},
+        {9,"\"(? <name>...)\" Named capturing group (Java, .NET)"},
+        {10,"\"(?>...)\" Atomic group (prevents backtracking)"},
 
         // Mode Modifiers
-        {"","\"(?i)\" Case-insensitive mode"},
-        {"","\"(?m)\" Multi-line mode (^ and $ match at line breaks)"},
-        {"","\"(?s)\" Dot-all mode (dot matches newlines)"},
-        {"","\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"},
-        {"","\"(?imxs)\" Enables multiple modes, all at once"},
+        {11,"\"(?i)\" Case-insensitive mode"},
+        {12,"\"(?m)\" Multi-line mode (^ and $ match at line breaks)"},
+        {13,"\"(?s)\" Dot-all mode (dot matches newlines)"},
+        {14,"\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"},
+        {15,"\"(?imxs)\" Enables multiple modes, all at once"},
 
         // Conditional Expressions
-        {"","\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"},
+        {16,"\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"},
 
         // Unicode & Advanced Escapes
-        {"","\"\\p{L}\" Matches any Unicode letter"},
-        {"","\"\\P{L}\" Matches anything except a Unicode letter"},
+        {17,"\"\\p{L}\" Matches any Unicode letter"},
+        {18,"\"\\P{L}\" Matches anything except a Unicode letter"},
 
         //Recursion
-        {"","\"(?R)\" Calls the entire pattern again(Recursion)"},
-        {"","\"(?(DEFINE)...)\" Defines a subpattern for later use"}
+        {19,"\"(?R)\" Calls the entire pattern again(Recursion)"},
+        {20,"\"(?(DEFINE)...)\" Defines a subpattern for later use"}
     };
+
+    std::string regexFindingQuerys[21] = {
+        "(?:\\()(?:\\?)(?!.*(.).*\\1)[xims]{1,4}(?:\\))"
+    };
+
+    RE2 pattern(regexFindingQuerys[0]);
+    if (RE2::PartialMatch(regexQuery, pattern)) {
+        WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[0]);
+    }
     
     ImGui::PopFont();
     ImGui::End();
@@ -335,7 +350,7 @@ void generateMainWindow(ImVec2 scale) {
 
 void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the explanation window!");
@@ -348,7 +363,7 @@ void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery
 
 void generateFocusedValidInputWindow(ImVec2 scale, int state[], char regexQuery[]) {
     ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the valid input window!");
@@ -363,7 +378,7 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     //create the valid input window
 
     ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     if (ImGui::Button("Focus VI window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 2;
     ImGui::Text("This is the valid input window!");
@@ -375,7 +390,7 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     // create the explanation window
 
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetfont185);
+    ImGui::PushFont(jetFont185);
     if (ImGui::Button("Focus Ex window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 1;
     ImGui::Text("This is the explanation window!");
@@ -576,3 +591,5 @@ void RenderGUI(GLFWwindow* window, ImVec2 initDisplaySize) {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
+
+#undef WRAPPED_BULLET_TEXT
