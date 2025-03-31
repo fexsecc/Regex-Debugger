@@ -1,3 +1,4 @@
+
 #include <cstring>
 #include <gui.h>
 #include <imgui.h>
@@ -100,7 +101,6 @@ GLuint indices[] = { //cube triangles
 
 //end of opengl icon variables
 
-
 void initShaders() {
     vertexShader = glCreateShader(GL_VERTEX_SHADER); // create shader
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -201,7 +201,7 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
     // Setup Dear Imgui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable keyboard navigation
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable gamepad navigation
 
@@ -251,25 +251,71 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
 //the below function is for the Explanation Window functionality
 void Explain(char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetFont185);
+    ImGui::PushFont(jetfont185);
+    
+    //single character regex expression explanations
 
-    std::unordered_map<char, const char*> regexCommandToExplanation = {
-        {'$',"$ asserts position at the end of a line"},
-        {'^',"^ asserts position at start of a line"},
+    std::unordered_map<char, const char*> regexSingleCharOperatorsExplanation = {
+        {'.', "'.' Matches any character (except newline)"},
+        {'*', "'*' Matches 0 or more occurrences"},
+        {'+', "'+' Matches 1 or more occurrences"},
+        {'?', "'?' Matches 0 or 1 occurrence"},
+        {'|', "'|' Alternation (OR) operator"},
+        {'^', "'^' Anchors to the start of a line (or negates in [])"},
+        {'$', "'$' Anchors to the end of a line"},
     };
 
     char* p;
     char sep[] = {
-        "$^"
+        "$^.*+?|"
     };
     p = strpbrk(regexQuery, sep);
     while (p != nullptr) {
-        if (regexCommandToExplanation[p[0]])
-            ImGui::BulletText(regexCommandToExplanation[p[0]]);
-        regexCommandToExplanation.erase(p[0]);
+        if (regexSingleCharOperatorsExplanation[p[0]])
+            ImGui::BulletText(regexSingleCharOperatorsExplanation[p[0]]);
+        regexSingleCharOperatorsExplanation.erase(p[0]);
         p = strpbrk(p + 1, sep);
     }
+    
+    //end of single char regex operand explanations
+    
+    std::unordered_map<std::string, std::string> regexMultiCharOperatorsExplanation = {
+        // Quantifiers
+        {"","\"{n}\" Matches exactly n times"},
+        {"","\"{n,}\" Matches at least n times"},
+        {"","\"{n,m}\" Matches between n and m times"},
+        
+        // Assertions (Lookaheads & Lookbehinds)
+        {"","\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"},
+        {"","\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"},
+        {"","\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"},
+        {"","\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"},
 
+        // Grouping & Special Constructs
+        {"","\"(?:...)\" Non-capturing group (groups pattern but does not store it)"},
+        {"","\"(?P<name>...)\" Named capturing group (Python, .NET)"},
+        {"","\"(? <name>...)\" Named capturing group (Java, .NET)"},
+        {"","\"(?>...)\" Atomic group (prevents backtracking)"},
+
+        // Mode Modifiers
+        {"","\"(?i)\" Case-insensitive mode"},
+        {"","\"(?m)\" Multi-line mode (^ and $ match at line breaks)"},
+        {"","\"(?s)\" Dot-all mode (dot matches newlines)"},
+        {"","\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"},
+        {"","\"(?imxs)\" Enables multiple modes, all at once"},
+
+        // Conditional Expressions
+        {"","\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"},
+
+        // Unicode & Advanced Escapes
+        {"","\"\\p{L}\" Matches any Unicode letter"},
+        {"","\"\\P{L}\" Matches anything except a Unicode letter"},
+
+        //Recursion
+        {"","\"(?R)\" Calls the entire pattern again(Recursion)"},
+        {"","\"(?(DEFINE)...)\" Defines a subpattern for later use"}
+    };
+    
     ImGui::PopFont();
     ImGui::End();
 }
@@ -289,8 +335,8 @@ void generateMainWindow(ImVec2 scale) {
 
 void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetFont185);
-    if (ImGui::Button("Go back", ImVec2(120 * scale.x, 30 * scale.y)))
+    ImGui::PushFont(jetfont185);
+    if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the explanation window!");
     Explain(regexQuery);
@@ -302,8 +348,8 @@ void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery
 
 void generateFocusedValidInputWindow(ImVec2 scale, int state[], char regexQuery[]) {
     ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
-    ImGui::PushFont(jetFont185);
-    if (ImGui::Button("Go back", ImVec2(120 * scale.x, 30 * scale.y)))
+    ImGui::PushFont(jetfont185);
+    if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the valid input window!");
     ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
@@ -317,8 +363,8 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     //create the valid input window
 
     ImGui::Begin("1", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove); //if you use the same name it changes the already existing window
-    ImGui::PushFont(jetFont185);
-    if (ImGui::Button("Focus VI window", ImVec2(120 * scale.x, 30 * scale.y)))
+    ImGui::PushFont(jetfont185);
+    if (ImGui::Button("Focus VI window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 2;
     ImGui::Text("This is the valid input window!");
     ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
@@ -328,13 +374,14 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
 
     // create the explanation window
 
-    ImGui::Begin("3", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    ImGui::PushFont(jetFont185);
-    if (ImGui::Button("Focus Ex window", ImVec2(120 * scale.x, 30 * scale.y)))
+    ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    ImGui::PushFont(jetfont185);
+    if (ImGui::Button("Focus Ex window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 1;
     ImGui::Text("This is the explanation window!");
     ImGui::SetWindowPos(ImVec2(830 * scale.x, 20 + 300 * scale.y), 0);
-    ApplyScale("3", ImVec2(450, 420), scale);
+    ApplyScale("explanationWindow", ImVec2(450, 420), scale);
+    Explain(regexQuery);
     ImGui::PopFont();
     ImGui::End();
 
@@ -347,7 +394,7 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
 
     generateMainWindow(scale); // generate main window and append into it
 
-    static char buf[10000] = "Example: ^([0-9])\\1{3}$"; //this is the Regex Input tab
+    static char buf[100000] = "^([0-9])\\1{3}$"; //this is the Regex Input tab
     {
         ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
