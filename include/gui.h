@@ -27,6 +27,7 @@
 
 constexpr auto X_RES = 1280.0;
 constexpr auto Y_RES = 720.0;
+std::string const fontRelPath = "/fonts/JetBrainsMono-Regular.ttf";
 
 
 void glfw_error_callback(int error, const char* description);

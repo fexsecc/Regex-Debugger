@@ -20,6 +20,7 @@ find_package(re2 REQUIRED)
 file(GLOB SRC_FILES "src/*.cpp")
 ## Create main executable
 add_executable(regdebug ${SRC_FILES})
+FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/fonts")
 target_include_directories(regdebug
   PRIVATE 
     #${STB_INCLUDE_DIRS}
