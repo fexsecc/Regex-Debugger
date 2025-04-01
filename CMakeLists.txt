@@ -23,11 +23,7 @@ add_executable(regdebug ${SRC_FILES})
 
 ## Copy the font over, depending on platform
 if(WIN32)
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/Debug/fonts")
-  elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/Release/fonts")
-  endif()
+  FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/Debug/fonts")
 else()
   FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/fonts")
 endif()
