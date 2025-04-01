@@ -24,9 +24,8 @@ add_executable(regdebug ${SRC_FILES})
 ## Copy the font over, depending on platform
 if(WIN32)
   FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/Debug/fonts")
-else()
-  FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/fonts")
 endif()
+FILE(COPY ./fonts/JetBrainsMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}/fonts")
 
 ## Library Header directories
 target_include_directories(regdebug
