@@ -322,12 +322,13 @@ void Explain(char regexQuery[]) {
         {20,"\"(?(DEFINE)...)\" Defines a subpattern for later use"}
     };
 
-    std::string regexFindingQuerys[21] = {
-        "(?:\\()(?:\\?)(?!.*(.).*\\1)[xims]{1,4}(?:\\))"
+    std::string regexFindingQuerys[21][2] = {
+        {".*\\(\\?[xims]{1,4}\\).*","xx|ii|ss|mm"}
     };
 
-    RE2 pattern(regexFindingQuerys[0]);
-    if (RE2::PartialMatch(regexQuery, pattern)) {
+    RE2 pattern(regexFindingQuerys[0][0]);
+    RE2 notPattern(regexFindingQuerys[0][1]);
+    if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery,notPattern)) {
         WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[0]);
     }
     
