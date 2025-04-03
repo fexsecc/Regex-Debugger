@@ -269,9 +269,9 @@ bool compareNumbers(char* s) { // returns true if first<second and false otherwi
     strncpy(character, p, 1);
     while (isdigit(character[0])) {
         num1 += atoi(character);
-        num1 *= 10;
         if (num1 > 65535)
             return false;
+        num1 *= 10;
         p = p + 1;
         strncpy(character, p, 1);
     }
@@ -282,9 +282,9 @@ bool compareNumbers(char* s) { // returns true if first<second and false otherwi
     strncpy(character, p, 1);
     while (isdigit(character[0])) {
         num2 += atoi(character);
-        num2 *= 10;
         if (num2 > 65535)
             return false;
+        num2 *= 10;
         p = p + 1;
         strncpy(character, p, 1);
     }
