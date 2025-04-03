@@ -277,65 +277,70 @@ void Explain(char regexQuery[]) {
     };
     p = strpbrk(regexQuery, sep);
     while (p != nullptr) {
-        if (regexSingleCharOperatorsExplanation[p[0]])
+        if (regexSingleCharOperatorsExplanation[p[0]]) {
             WRAPPED_BULLET_TEXT(regexSingleCharOperatorsExplanation[p[0]]);
-        regexSingleCharOperatorsExplanation.erase(p[0]);
+            regexSingleCharOperatorsExplanation.erase(p[0]);
+        }
         p = strpbrk(p + 1, sep);
     }
     
     //end of single char regex operand explanations
     
-    std::unordered_map<int8_t, char*> regexMultiCharOperatorsExplanation = {
+    char* regexMultiCharOperatorsExplanation[21] = {
         // Quantifiers
-        {0,"\"{n}\" Matches exactly n times"},
-        {1,"\"{n,}\" Matches at least n times"},
-        {2,"\"{n,m}\" Matches between n and m times"},
+        {"\"{n}\" Matches exactly n times"}, // 0 
+        {"\"{n,}\" Matches at least n times"}, // 1
+        {"\"{n,m}\" Matches between n and m times"}, // 2
         
         // Assertions (Lookaheads & Lookbehinds)
-        {3,"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"},
-        {4,"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"},
-        {5,"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"},
-        {6,"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"},
+        {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
+        {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"}, // 4
+        {"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"}, // 5
+        {"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"}, // 6
 
         // Grouping & Special Constructs
-        {7,"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"},
-        {8,"\"(?P<name>...)\" Named capturing group (Python, .NET)"},
-        {9,"\"(? <name>...)\" Named capturing group (Java, .NET)"},
-        {10,"\"(?>...)\" Atomic group (prevents backtracking)"},
+        {"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"}, // 7
+        {"\"(?P<name>...)\" Named capturing group (Python, .NET)"}, // 8
+        {"\"(? <name>...)\" Named capturing group (Java, .NET)"}, // 9
+        {"\"(?>...)\" Atomic group (prevents backtracking)"}, // 10
 
         // Mode Modifiers
-        {11,"\"(?i)\" Case-insensitive mode"},
-        {12,"\"(?m)\" Multi-line mode (^ and $ match at line breaks)"},
-        {13,"\"(?s)\" Dot-all mode (dot matches newlines)"},
-        {14,"\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"},
-        {15,"\"(?imxs)\" Enables multiple modes, all at once"},
+        {"\"(?i)\" Case-insensitive mode"}, // 11
+        {"\"(?m)\" Multi-line mode (^ and $ match at line breaks)"}, // 12
+        {"\"(?s)\" Dot-all mode (dot matches newlines)"}, // 13
+        {"\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"}, // 14
+        {"\"(?imxs)\" Enables multiple modes, all at once"}, // 15
 
         // Conditional Expressions
-        {16,"\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"},
+        {"\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"}, // 16
 
         // Unicode & Advanced Escapes
-        {17,"\"\\p{L}\" Matches any Unicode letter"},
-        {18,"\"\\P{L}\" Matches anything except a Unicode letter"},
+        {"\"\\p{L}\" Matches any Unicode letter"}, // 17
+        {"\"\\P{L}\" Matches anything except a Unicode letter"}, // 18
 
         //Recursion
-        {19,"\"(?R)\" Calls the entire pattern again(Recursion)"},
-        {20,"\"(?(DEFINE)...)\" Defines a subpattern for later use"}
-    };
+        {"\"(?R)\" Calls the entire pattern again(Recursion)"}, // 19
+        {"\"(?(DEFINE)...)\" Defines a subpattern for later use"} // 20
+    }; // the number after each expression is the index of that expression
 
     std::string regexFindingQuerys[21][4] = {
-        {".*\\(\\?[xims]{1,4}\\).*","\\(\\?(?:(?:[xims]?(?:xx|ii|mm|ss)[xims]?)|(?:[xims]{2}(?:xx|ii|mm|ss)))\\)",
+        {"\\(\\?i\\)","$^","$^","$^"},
+        {"\\(\\?m\\)","$^","$^","$^"},
+        {"\\(\\?s\\)","$^","$^","$^"},
+        {"\\(\\?x\\)","$^","$^","$^"},
+        {".*\\(\\?[xims]{2,4}\\).*","\\(\\?(?:(?:[xims]?(?:xx|ii|mm|ss)[xims]?)|(?:[xims]{2}(?:xx|ii|mm|ss)))\\)",
          "\\(\\?(?:(?:x[ims]x)|(?:i[xms]i)|(?:s[imx]s)|(?:m[sxi]m))\\)","\\(\\?(?:(?:x[ims]{2}x)|(?:i[xms]{2}i)|(?:s[xim]{2}s)|(?:m[xis]{2}m))\\)"}
     };
-
-    RE2 pattern(regexFindingQuerys[0][0]);
-    RE2 notPattern1(regexFindingQuerys[0][1]);
-    RE2 notPattern2(regexFindingQuerys[0][2]);
-    RE2 notPattern3(regexFindingQuerys[0][3]);
-    if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery,notPattern1) && 
-        !RE2::PartialMatch(regexQuery,notPattern2) && !RE2::PartialMatch(regexQuery,notPattern3)){
-        WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[0]);
+    for (int i = 0; i < 21; ++i) {
+        RE2 pattern(regexFindingQuerys[i][0]);
+        RE2 notPattern1(regexFindingQuerys[i][1]);
+        RE2 notPattern2(regexFindingQuerys[i][2]);
+        RE2 notPattern3(regexFindingQuerys[i][3]);
+        if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery, notPattern1) &&
+            !RE2::PartialMatch(regexQuery, notPattern2) && !RE2::PartialMatch(regexQuery, notPattern3)) {
+            WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[15-4+i]);
+        }
     }
-    
     ImGui::PopFont();
     ImGui::End();
 }
