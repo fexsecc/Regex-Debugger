@@ -1,9 +1,7 @@
 
-#include <cstring>
 #include <gui.h>
 #include <imgui.h>
 #include <filesystem>
-#include <string>
 
 //new imgui definitions
 
@@ -254,7 +252,46 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
     ImGui::End();
 }
 
-//the below function is for the Explanation Window functionality
+
+//the below functions are for the Explanation Window functionality
+
+bool compareNumbers(char* s) { // returns true if first<second and false otherwise
+                               //(for expressions of type "{n,m}", aka regexMultiCharOperatorsExplanation[2])
+    char* p;
+    p = strchr(s, '{');
+    if (!p)
+        return false;
+    p = strpbrk(p+1, "0123456789");
+    if (!p)
+        return false;
+    int num1=0, num2=0;
+    char character[2];
+    strncpy(character, p, 1);
+    while (isdigit(character[0])) {
+        num1 += atoi(character);
+        num1 *= 10;
+        if (num1 > 65535)
+            return false;
+        p = p + 1;
+        strncpy(character, p, 1);
+    }
+    num1 /= 10;
+    p = strpbrk(p + 1, "0123456789");
+    if (!p)
+        return false;
+    strncpy(character, p, 1);
+    while (isdigit(character[0])) {
+        num2 += atoi(character);
+        num2 *= 10;
+        if (num2 > 65535)
+            return false;
+        p = p + 1;
+        strncpy(character, p, 1);
+    }
+    num2 /= 10;
+    return num1<=num2;
+}
+
 void Explain(char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
     ImGui::PushFont(jetFont185);
@@ -277,60 +314,91 @@ void Explain(char regexQuery[]) {
     };
     p = strpbrk(regexQuery, sep);
     while (p != nullptr) {
-        if (regexSingleCharOperatorsExplanation[p[0]])
+        if (regexSingleCharOperatorsExplanation[p[0]]) {
             WRAPPED_BULLET_TEXT(regexSingleCharOperatorsExplanation[p[0]]);
-        regexSingleCharOperatorsExplanation.erase(p[0]);
+            regexSingleCharOperatorsExplanation.erase(p[0]);
+        }
         p = strpbrk(p + 1, sep);
     }
     
     //end of single char regex operand explanations
     
-    std::unordered_map<int8_t, char*> regexMultiCharOperatorsExplanation = {
-        // Quantifiers
-        {0,"\"{n}\" Matches exactly n times"},
-        {1,"\"{n,}\" Matches at least n times"},
-        {2,"\"{n,m}\" Matches between n and m times"},
+    char* regexMultiCharOperatorsExplanation[21] = {
+        // Quantifiers (SOLVED)
+        {"\"{n}\" Matches exactly n times"}, // 0
+        {"\"{n,}\" Matches at least n times"}, // 1
+        {"\"{n,m}\" Matches between n and m times"}, // 2
         
-        // Assertions (Lookaheads & Lookbehinds)
-        {3,"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"},
-        {4,"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"},
-        {5,"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"},
-        {6,"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"},
+        // Assertions (Lookaheads & Lookbehinds) (SOLVED)
+        {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
+        {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"}, // 4
+        {"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"}, // 5
+        {"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"}, // 6
 
-        // Grouping & Special Constructs
-        {7,"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"},
-        {8,"\"(?P<name>...)\" Named capturing group (Python, .NET)"},
-        {9,"\"(? <name>...)\" Named capturing group (Java, .NET)"},
-        {10,"\"(?>...)\" Atomic group (prevents backtracking)"},
+        // Grouping & Special Constructs (SOLVED)
+        {"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"}, // 7
+        {"\"(?P<name>...)\" Named capturing group (Python, .NET)"}, // 8
+        {"\"(? <name>...)\" Named capturing group (Java, .NET)"}, // 9
+        {"\"(?>...)\" Atomic group (prevents backtracking)"}, // 10
 
-        // Mode Modifiers
-        {11,"\"(?i)\" Case-insensitive mode"},
-        {12,"\"(?m)\" Multi-line mode (^ and $ match at line breaks)"},
-        {13,"\"(?s)\" Dot-all mode (dot matches newlines)"},
-        {14,"\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"},
-        {15,"\"(?imxs)\" Enables multiple modes, all at once"},
+        // Mode Modifiers (SOLVED)
+        {"\"(?i)\" Case-insensitive mode"}, // 11
+        {"\"(?m)\" Multi-line mode (^ and $ match at line breaks)"}, // 12
+        {"\"(?s)\" Dot-all mode (dot matches newlines)"}, // 13
+        {"\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"}, // 14
+        {"\"(?imxs)\" Enables multiple modes, all at once"}, // 15
 
         // Conditional Expressions
-        {16,"\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"},
+        {"\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"}, // 16
 
         // Unicode & Advanced Escapes
-        {17,"\"\\p{L}\" Matches any Unicode letter"},
-        {18,"\"\\P{L}\" Matches anything except a Unicode letter"},
+        {"\"\\p{L}\" Matches any Unicode letter"}, // 17
+        {"\"\\P{L}\" Matches anything except a Unicode letter"}, // 18
 
         //Recursion
-        {19,"\"(?R)\" Calls the entire pattern again(Recursion)"},
-        {20,"\"(?(DEFINE)...)\" Defines a subpattern for later use"}
-    };
+        {"\"(?R)\" Calls the entire pattern again(Recursion)"}, // 19
+        {"\"(?(DEFINE)...)\" Defines a subpattern for later use"} // 20
 
-    std::string regexFindingQuerys[21] = {
-        "(?:\\()(?:\\?)(?!.*(.).*\\1)[xims]{1,4}(?:\\))"
-    };
+        //Backslash Expressions
 
-    RE2 pattern(regexFindingQuerys[0]);
-    if (RE2::PartialMatch(regexQuery, pattern)) {
-        WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[0]);
+        //Literal matching (literally matching expressions like "xx" or "\?")
+
+    }; // the number after each expression is the index of that expression
+
+    std::string regexFindingQuerys[21][1] = {
+        {"{[0-9]+}"}, // 0
+        {"{[0-9]+,}"}, // 1
+        {"{[0-9]+,[0-9]+}"}, // 2
+        {"\\(\\?\\=.*\\)"}, // 3
+        {"\\(\\?\\!.*\\)"}, // 4
+        {"\\(\\?\\<\\=.*\\)"}, // 5
+        {"\\(\\?\\<\\!.*\\)"}, // 6
+        {"\\(\\?\\:.*\\)"}, // 7
+        {"\\(\\?P\\<.*\\>.*\\)"}, // 8
+        {"\\(\\?\\<.*\\>.*\\)"}, // 9
+        {"\\(\\?\\>.*\\)"}, // 10
+        {"\\(\\?i\\)"}, // 11
+        {"\\(\\?m\\)"}, // 12
+        {"\\(\\?s\\)"}, // 13
+        {"\\(\\?x\\)"}, // 14
+        {"\\(\\?[xims]+\\)"}, // 15
+        {"\\(\\?\\(\\?(?:!=|<!|=|<=).*|.*\\)\\)"}, // 16
+        {"\\\\p\\{L\\}"}, // 17
+        {"\\\\P\\{L\\}"}, // 18
+        {"\\(\\?R\\)"}, // 19
+        {"\\(\\?\\(DEFINE\\).*\\|.*\\)"} // 20
+    };
+    for (int i = 0; i < 21; ++i) {
+        RE2 pattern(regexFindingQuerys[i][0]);
+        if (i == 2) {
+            if (RE2::PartialMatch(regexQuery, pattern) && compareNumbers(regexQuery)) {
+                    WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[i]);
+            }
+        }
+        else if (RE2::PartialMatch(regexQuery, pattern)) {
+            WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[i]);
+        }
     }
-    
     ImGui::PopFont();
     ImGui::End();
 }
