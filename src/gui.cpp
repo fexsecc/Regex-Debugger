@@ -289,7 +289,7 @@ bool compareNumbers(char* s) { // returns true if first<second and false otherwi
         strncpy(character, p, 1);
     }
     num2 /= 10;
-    return num1<num2;
+    return num1<=num2;
 }
 
 void Explain(char regexQuery[]) {
@@ -329,13 +329,13 @@ void Explain(char regexQuery[]) {
         {"\"{n,}\" Matches at least n times"}, // 1
         {"\"{n,m}\" Matches between n and m times"}, // 2
         
-        // Assertions (Lookaheads & Lookbehinds)
-        {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume) (Supported only by advanced regex languages like Perl or ECMAScript)"}, // 3
-        {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)(Supported only by advanced regex languages like Perl or ECMAScript)"}, // 4
-        {"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)(Supported only by advanced regex languages like Perl or ECMAScript)"}, // 5
-        {"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)(Supported only by advanced regex languages like Perl or ECMAScript)"}, // 6
+        // Assertions (Lookaheads & Lookbehinds) (SOLVED)
+        {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
+        {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"}, // 4
+        {"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"}, // 5
+        {"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"}, // 6
 
-        // Grouping & Special Constructs
+        // Grouping & Special Constructs (SOLVED)
         {"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"}, // 7
         {"\"(?P<name>...)\" Named capturing group (Python, .NET)"}, // 8
         {"\"(? <name>...)\" Named capturing group (Java, .NET)"}, // 9
@@ -360,31 +360,37 @@ void Explain(char regexQuery[]) {
         {"\"(?(DEFINE)...)\" Defines a subpattern for later use"} // 20
     }; // the number after each expression is the index of that expression
 
-    std::string regexFindingQuerys[21][4] = {
-        {"{[0-9]+}", "$^", "$^", "$^"}, // 0
-        {"{[0-9]+,}", "$^", "$^", "$^"}, // 1
-        {"{[0-9]+,[0-9]+}", "$^", "$^", "$^"}, // 2
-        {"\\(\\?i\\)","$^","$^","$^"}, // 11
-        {"\\(\\?m\\)","$^","$^","$^"}, // 12
-        {"\\(\\?s\\)","$^","$^","$^"}, // 13
-        {"\\(\\?x\\)","$^","$^","$^"}, // 14
-        {".*\\(\\?[xims]{2,4}\\).*","\\(\\?(?:(?:[xims]?(?:xx|ii|mm|ss)[xims]?)|(?:[xims]{2}(?:xx|ii|mm|ss)))\\)", // 15
-         "\\(\\?(?:(?:x[ims]x)|(?:i[xms]i)|(?:s[imx]s)|(?:m[sxi]m))\\)","\\(\\?(?:(?:x[ims]{2}x)|(?:i[xms]{2}i)|(?:s[xim]{2}s)|(?:m[xis]{2}m))\\)"}
-
+    std::string regexFindingQuerys[21][1] = {
+        {"{[0-9]+}"}, // 0
+        {"{[0-9]+,}"}, // 1
+        {"{[0-9]+,[0-9]+}"}, // 2
+        {"\\(\\?\\=.*\\)"}, // 3
+        {"\\(\\?\\!.*\\)"}, // 4
+        {"\\(\\?\\<\\=.*\\)"}, // 5
+        {"\\(\\?\\<\\!.*\\)"}, // 6
+        {"\\(\\?\\:.*\\)"}, // 7
+        {"\\(\\?P\\<.*\\>.*\\)"}, // 8
+        {"\\(\\?\\<.*\\>.*\\)"}, // 9
+        {"\\(\\?\\>.*\\)"}, // 10
+        {"\\(\\?i\\)"}, // 11
+        {"\\(\\?m\\)"}, // 12
+        {"\\(\\?s\\)"}, // 13
+        {"\\(\\?x\\)"}, // 14
+        {"\\(\\?[xims]+\\)"}, // 15
+        {"\\(\\?\\(\\?(?:!=|<!|=|<=).*|.*\\)\\)"}, // 16
+        {"\\\\p\\{L\\}"}, // 17
+        {"\\\\P\\{L\\}"}, // 18
+        {"\\(\\?R\\)"}, // 19
+        {"\\(\\?\\(DEFINE\\).*\\|.*\\)"}
     };
     for (int i = 0; i < 21; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
-        RE2 notPattern1(regexFindingQuerys[i][1]);
-        RE2 notPattern2(regexFindingQuerys[i][2]);
-        RE2 notPattern3(regexFindingQuerys[i][3]);
         if (i == 2) {
-            if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery, notPattern1) &&
-                !RE2::PartialMatch(regexQuery, notPattern2) && !RE2::PartialMatch(regexQuery, notPattern3) && compareNumbers(regexQuery)) {
+            if (RE2::PartialMatch(regexQuery, pattern) && compareNumbers(regexQuery)) {
                     WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[i]);
             }
         }
-        else if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery, notPattern1) &&
-            !RE2::PartialMatch(regexQuery, notPattern2) && !RE2::PartialMatch(regexQuery, notPattern3)) {
+        else if (RE2::PartialMatch(regexQuery, pattern)) {
             WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[i]);
         }
     }
