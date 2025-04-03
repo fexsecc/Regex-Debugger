@@ -358,6 +358,11 @@ void Explain(char regexQuery[]) {
         //Recursion
         {"\"(?R)\" Calls the entire pattern again(Recursion)"}, // 19
         {"\"(?(DEFINE)...)\" Defines a subpattern for later use"} // 20
+
+        //Backslash Expressions
+
+        //Literal matching (literally matching expressions like "xx" or "\?")
+
     }; // the number after each expression is the index of that expression
 
     std::string regexFindingQuerys[21][1] = {
@@ -381,7 +386,7 @@ void Explain(char regexQuery[]) {
         {"\\\\p\\{L\\}"}, // 17
         {"\\\\P\\{L\\}"}, // 18
         {"\\(\\?R\\)"}, // 19
-        {"\\(\\?\\(DEFINE\\).*\\|.*\\)"}
+        {"\\(\\?\\(DEFINE\\).*\\|.*\\)"} // 20
     };
     for (int i = 0; i < 21; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
