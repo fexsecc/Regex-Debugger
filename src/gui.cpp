@@ -322,13 +322,17 @@ void Explain(char regexQuery[]) {
         {20,"\"(?(DEFINE)...)\" Defines a subpattern for later use"}
     };
 
-    std::string regexFindingQuerys[21][2] = {
-        {".*\\(\\?[xims]{1,4}\\).*","xx|ii|ss|mm"}
+    std::string regexFindingQuerys[21][4] = {
+        {".*\\(\\?[xims]{1,4}\\).*","\\(\\?(?:(?:[xims]?(?:xx|ii|mm|ss)[xims]?)|(?:[xims]{2}(?:xx|ii|mm|ss)))\\)",
+         "\\(\\?(?:(?:x[ims]x)|(?:i[xms]i)|(?:s[imx]s)|(?:m[sxi]m))\\)","\\(\\?(?:(?:x[ims]{2}x)|(?:i[xms]{2}i)|(?:s[xim]{2}s)|(?:m[xis]{2}m))\\)"}
     };
 
     RE2 pattern(regexFindingQuerys[0][0]);
-    RE2 notPattern(regexFindingQuerys[0][1]);
-    if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery,notPattern)) {
+    RE2 notPattern1(regexFindingQuerys[0][1]);
+    RE2 notPattern2(regexFindingQuerys[0][2]);
+    RE2 notPattern3(regexFindingQuerys[0][3]);
+    if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery,notPattern1) && 
+        !RE2::PartialMatch(regexQuery,notPattern2) && !RE2::PartialMatch(regexQuery,notPattern3)){
         WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[0]);
     }
     
