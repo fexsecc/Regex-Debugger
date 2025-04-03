@@ -1,9 +1,7 @@
 
-#include <cstring>
 #include <gui.h>
 #include <imgui.h>
 #include <filesystem>
-#include <string>
 
 //new imgui definitions
 
@@ -254,7 +252,46 @@ void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
     ImGui::End();
 }
 
-//the below function is for the Explanation Window functionality
+
+//the below functions are for the Explanation Window functionality
+
+bool compareNumbers(char* s) { // returns true if first<second and false otherwise
+                               //(for expressions of type "{n,m}", aka regexMultiCharOperatorsExplanation[2])
+    char* p;
+    p = strchr(s, '{');
+    if (!p)
+        return false;
+    p = strpbrk(p+1, "0123456789");
+    if (!p)
+        return false;
+    int num1=0, num2=0;
+    char character[2];
+    strncpy(character, p, 1);
+    while (isdigit(character[0])) {
+        num1 += atoi(character);
+        num1 *= 10;
+        if (num1 > 65535)
+            return false;
+        p = p + 1;
+        strncpy(character, p, 1);
+    }
+    num1 /= 10;
+    p = strpbrk(p + 1, "0123456789");
+    if (!p)
+        return false;
+    strncpy(character, p, 1);
+    while (isdigit(character[0])) {
+        num2 += atoi(character);
+        num2 *= 10;
+        if (num2 > 65535)
+            return false;
+        p = p + 1;
+        strncpy(character, p, 1);
+    }
+    num2 /= 10;
+    return num1<num2;
+}
+
 void Explain(char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
     ImGui::PushFont(jetFont185);
@@ -287,16 +324,16 @@ void Explain(char regexQuery[]) {
     //end of single char regex operand explanations
     
     char* regexMultiCharOperatorsExplanation[21] = {
-        // Quantifiers
-        {"\"{n}\" Matches exactly n times"}, // 0 
+        // Quantifiers (SOLVED)
+        {"\"{n}\" Matches exactly n times"}, // 0
         {"\"{n,}\" Matches at least n times"}, // 1
         {"\"{n,m}\" Matches between n and m times"}, // 2
         
         // Assertions (Lookaheads & Lookbehinds)
-        {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
-        {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"}, // 4
-        {"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"}, // 5
-        {"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"}, // 6
+        {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume) (Supported only by advanced regex languages like Perl or ECMAScript)"}, // 3
+        {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)(Supported only by advanced regex languages like Perl or ECMAScript)"}, // 4
+        {"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)(Supported only by advanced regex languages like Perl or ECMAScript)"}, // 5
+        {"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)(Supported only by advanced regex languages like Perl or ECMAScript)"}, // 6
 
         // Grouping & Special Constructs
         {"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"}, // 7
@@ -304,7 +341,7 @@ void Explain(char regexQuery[]) {
         {"\"(? <name>...)\" Named capturing group (Java, .NET)"}, // 9
         {"\"(?>...)\" Atomic group (prevents backtracking)"}, // 10
 
-        // Mode Modifiers
+        // Mode Modifiers (SOLVED)
         {"\"(?i)\" Case-insensitive mode"}, // 11
         {"\"(?m)\" Multi-line mode (^ and $ match at line breaks)"}, // 12
         {"\"(?s)\" Dot-all mode (dot matches newlines)"}, // 13
@@ -324,21 +361,31 @@ void Explain(char regexQuery[]) {
     }; // the number after each expression is the index of that expression
 
     std::string regexFindingQuerys[21][4] = {
-        {"\\(\\?i\\)","$^","$^","$^"},
-        {"\\(\\?m\\)","$^","$^","$^"},
-        {"\\(\\?s\\)","$^","$^","$^"},
-        {"\\(\\?x\\)","$^","$^","$^"},
-        {".*\\(\\?[xims]{2,4}\\).*","\\(\\?(?:(?:[xims]?(?:xx|ii|mm|ss)[xims]?)|(?:[xims]{2}(?:xx|ii|mm|ss)))\\)",
+        {"{[0-9]+}", "$^", "$^", "$^"}, // 0
+        {"{[0-9]+,}", "$^", "$^", "$^"}, // 1
+        {"{[0-9]+,[0-9]+}", "$^", "$^", "$^"}, // 2
+        {"\\(\\?i\\)","$^","$^","$^"}, // 11
+        {"\\(\\?m\\)","$^","$^","$^"}, // 12
+        {"\\(\\?s\\)","$^","$^","$^"}, // 13
+        {"\\(\\?x\\)","$^","$^","$^"}, // 14
+        {".*\\(\\?[xims]{2,4}\\).*","\\(\\?(?:(?:[xims]?(?:xx|ii|mm|ss)[xims]?)|(?:[xims]{2}(?:xx|ii|mm|ss)))\\)", // 15
          "\\(\\?(?:(?:x[ims]x)|(?:i[xms]i)|(?:s[imx]s)|(?:m[sxi]m))\\)","\\(\\?(?:(?:x[ims]{2}x)|(?:i[xms]{2}i)|(?:s[xim]{2}s)|(?:m[xis]{2}m))\\)"}
+
     };
     for (int i = 0; i < 21; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
         RE2 notPattern1(regexFindingQuerys[i][1]);
         RE2 notPattern2(regexFindingQuerys[i][2]);
         RE2 notPattern3(regexFindingQuerys[i][3]);
-        if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery, notPattern1) &&
+        if (i == 2) {
+            if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery, notPattern1) &&
+                !RE2::PartialMatch(regexQuery, notPattern2) && !RE2::PartialMatch(regexQuery, notPattern3) && compareNumbers(regexQuery)) {
+                    WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[i]);
+            }
+        }
+        else if (RE2::PartialMatch(regexQuery, pattern) && !RE2::PartialMatch(regexQuery, notPattern1) &&
             !RE2::PartialMatch(regexQuery, notPattern2) && !RE2::PartialMatch(regexQuery, notPattern3)) {
-            WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[15-4+i]);
+            WRAPPED_BULLET_TEXT(regexMultiCharOperatorsExplanation[i]);
         }
     }
     ImGui::PopFont();

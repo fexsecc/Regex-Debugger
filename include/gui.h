@@ -9,8 +9,10 @@
 #include <iostream>
 #include <stdio.h>
 #include <unordered_map>
+#include <map>
 #include <cstring>
 #include <string>
+#include <vector>
 
 //graphics libraries(headers)
 #include <glad/glad.h>
