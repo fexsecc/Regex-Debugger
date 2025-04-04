@@ -313,8 +313,9 @@ void Explain(char regexQuery[]) {
         "$^.*+?|"
     };
     p = strpbrk(regexQuery, sep);
+
     while (p != nullptr) {
-        if (regexSingleCharOperatorsExplanation[p[0]]) {
+        if (regexSingleCharOperatorsExplanation[p[0]] && (p==regexQuery || *(p - 1) != '\\')) {
             WRAPPED_BULLET_TEXT(regexSingleCharOperatorsExplanation[p[0]]);
             regexSingleCharOperatorsExplanation.erase(p[0]);
         }
