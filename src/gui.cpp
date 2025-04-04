@@ -323,12 +323,12 @@ void Explain(char regexQuery[]) {
     
     //end of single char regex operand explanations
     
-    char* regexMultiCharOperatorsExplanation[37] = {
+    char* regexMultiCharOperatorsExplanation[39] = {
         // Quantifiers (SOLVED)
         {"\"{n}\" Matches exactly n times"}, // 0
         {"\"{n,}\" Matches at least n times"}, // 1
         {"\"{n,m}\" Matches between n and m times"}, // 2
-        
+
         // Assertions (Lookaheads & Lookbehinds) (SOLVED)
         {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
         {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"}, // 4
@@ -348,20 +348,20 @@ void Explain(char regexQuery[]) {
         {"\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"}, // 14
         {"\"(?imxs)\" Enables multiple modes, all at once"}, // 15
 
-        // Conditional Expressions
+        // Conditional Expressions (SOLVED)
         {"\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"}, // 16
 
-        // Unicode & Advanced Escapes
+        // Unicode & Advanced Escapes (SOLVED)
         {"\"\\p{L}\" Matches any Unicode letter"}, // 17
         {"\"\\P{L}\" Matches anything except a Unicode letter"}, // 18
 
-        //Recursion
+        //Recursion (SOLVED)
         {"\"(?R)\" Calls the entire pattern again(Recursion)"}, // 19
         {"\"(?(DEFINE)...)\" Defines a subpattern for later use"}, // 20
 
         //Square parentheses expressions
 
-        //Backslash Expressions
+        //Backslash Expressions (SOLVED)
         {"\"\\d\" Matches any digit character, equivalent to [0-9]"}, // 21
         {"\"\\D\" Matches any non-digit character, equivalent to [^0-9]"}, // 22
         {"\"\\w\" Matches any \"word character\", equivalent to [a-zA-Z0-9_]"}, // 23
@@ -378,13 +378,26 @@ void Explain(char regexQuery[]) {
         {"\"\\0\" Matches a null byte (ASCII 0)"}, // 34
         {"\"\\xhh\" (where hh is a 2 digit hexadecimal (base 16) code) matches a character represented by its 2 digit hex code (works with 1 digit too)"}, // 35
         {"\"\\uHHHH\" (where HHHH is a 4 digit hexadecimal (base 16) code) matches a UNICODE character represented by its 4 digit hex code (useful for non-ASCII chars)(regex flavor-dependent)"}, // 36
-         
+        {"\"\\i\" (where i is a natural number reprezenting the i'th capturing group) Is a backreference to a previously captured group, it allows you to refer back to a previously matched group in the pattern (regex flavor-dependent)"}, //37
+        
+        //Regular capturing groups
+        {"(...) is a capturing group, it captures what the expression inside matches"}, //38
+        
+        //Square bracketed lists
+        {"[...] Matches any character present in the list of characters in the square brackets"}, //39
+        {"[^...] Matches any other character than the ones present in the list of characters in the square brackets"}, //40
+        {"[...a-z...] Matches any character between a and z (you can replace a and z with any other lowercase character, it will match the chars in the interval)"}, // 41
+        {"[...A-Z...] Matches any character between A and Z (you can replace A and Z with any other uppercase character, it will match the chars in the interval)"}, // 42
+        {"[...&&...] Represent the conjunction of the left and right expression, thus matching both sides (for complicated expressions)"}, // 43
+
+
         //Literal matching (literally matching expressions like "xx" or "\?")
         
+        //Slash expressions (/g, /m)
 
     }; // the number after each expression is the index of that expression
 
-    std::string regexFindingQuerys[37][1] = {
+    std::string regexFindingQuerys[39][1] = {
         {"{[0-9]+}"}, // 0
         {"{[0-9]+,}"}, // 1
         {"{[0-9]+,[0-9]+}"}, // 2
@@ -422,8 +435,10 @@ void Explain(char regexQuery[]) {
         {"(?:[^\\\\]|^){1}\\\\0"}, // 34
         {"(?:[^\\\\]|^){1}\\\\x(?:\\d|[A-Fa-f]){1,2}"}, // 35
         {"(?:[^\\\\]|^){1}\\\\u(?:\\d|[A-Fa-f]){4}"}, // 36
+        {"(?:[^\\\\]|^){1}\\\\1"}, // 37
+        {"\\(.*\\)"} // 38
     };
-    for (int i = 0; i < 37; ++i) {
+    for (int i = 0; i < 39; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
         if (i == 2) {
             if (RE2::PartialMatch(regexQuery, pattern) && compareNumbers(regexQuery)) {
