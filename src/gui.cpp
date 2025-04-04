@@ -323,7 +323,7 @@ void Explain(char regexQuery[]) {
     
     //end of single char regex operand explanations
     
-    char* regexMultiCharOperatorsExplanation[21] = {
+    char* regexMultiCharOperatorsExplanation[37] = {
         // Quantifiers (SOLVED)
         {"\"{n}\" Matches exactly n times"}, // 0
         {"\"{n,}\" Matches at least n times"}, // 1
@@ -357,11 +357,30 @@ void Explain(char regexQuery[]) {
 
         //Recursion
         {"\"(?R)\" Calls the entire pattern again(Recursion)"}, // 19
-        {"\"(?(DEFINE)...)\" Defines a subpattern for later use"} // 20
+        {"\"(?(DEFINE)...)\" Defines a subpattern for later use"}, // 20
+
+        //Square parentheses expressions
 
         //Backslash Expressions
-
+        {"\"\\d\" Matches any digit character, equivalent to [0-9]"}, // 21
+        {"\"\\D\" Matches any non-digit character, equivalent to [^0-9]"}, // 22
+        {"\"\\w\" Matches any \"word character\", equivalent to [a-zA-Z0-9_]"}, // 23
+        {"\"\\W\" Matches any \"non-word character\", equivalent to [^a-zA-Z0-9_]"}, // 24
+        {"\"\\s\" Matches any whitespace characters (space, tab, newline, etc.)"}, // 25
+        {"\"\\S\" Matches any non-whitespace characters (NOT space, tab, newline, etc.)"}, // 26
+        {"\"\\b\" Matches a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 27
+        {"\"\\B\" Matches everything other than a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 28
+        {"\"\\n\" Matches a newline"}, // 29
+        {"\"\\r\" Matches a carriage-return (useful for windows-style line breaks, next to \\n)"}, // 30
+        {"\"\\t\" Matches a horizontal tab character (ASCII 9)"}, // 31
+        {"\"\\f\" Matches a form feed (rarely used nowadays)"}, // 32
+        {"\"\\v\" Matches a vertical tab character (ASCII 11)"}, // 33
+        {"\"\\0\" Matches a null byte (ASCII 0)"}, // 34
+        {"\"\\xhh\" (where hh is a 2 digit hexadecimal (base 16) code) matches a character represented by its 2 digit hex code"}, // 35
+        {"\"\\uHHHH\" (where HHHH is a 4 digit hexadecimal (base 16) code) matches a UNICODE character represented by its 4 digit hex code (useful for non-ASCII chars)"}, // 36
+        
         //Literal matching (literally matching expressions like "xx" or "\?")
+        
 
     }; // the number after each expression is the index of that expression
 
