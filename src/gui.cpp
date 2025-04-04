@@ -304,7 +304,7 @@ void Explain(char regexQuery[]) {
         {'+', "'+' Matches 1 or more occurrences"},
         {'?', "'?' Matches 0 or 1 occurrence"},
         {'|', "'|' Alternation (OR) operator"},
-        {'^', "'^' Anchors to the start of a line (or negates in [])"},
+        {'^', "'^' Anchors to the start of a line"},
         {'$', "'$' Anchors to the end of a line"},
     };
 
@@ -323,7 +323,7 @@ void Explain(char regexQuery[]) {
     
     //end of single char regex operand explanations
     
-    char* regexMultiCharOperatorsExplanation[39] = {
+    char* regexMultiCharOperatorsExplanation[43] = {
         // Quantifiers (SOLVED)
         {"\"{n}\" Matches exactly n times"}, // 0
         {"\"{n,}\" Matches at least n times"}, // 1
@@ -380,16 +380,14 @@ void Explain(char regexQuery[]) {
         {"\"\\uHHHH\" (where HHHH is a 4 digit hexadecimal (base 16) code) matches a UNICODE character represented by its 4 digit hex code (useful for non-ASCII chars)(regex flavor-dependent)"}, // 36
         {"\"\\i\" (where i is a natural number reprezenting the i'th capturing group) Is a backreference to a previously captured group, it allows you to refer back to a previously matched group in the pattern (regex flavor-dependent)"}, //37
         
-        //Regular capturing groups
+        //Regular capturing groups (SOLVED)
         {"(...) is a capturing group, it captures what the expression inside matches"}, //38
         
-        //Square bracketed lists
-        {"[...] Matches any character present in the list of characters in the square brackets"}, //39
-        {"[^...] Matches any other character than the ones present in the list of characters in the square brackets"}, //40
-        {"[...a-z...] Matches any character between a and z (you can replace a and z with any other lowercase character, it will match the chars in the interval)"}, // 41
-        {"[...A-Z...] Matches any character between A and Z (you can replace A and Z with any other uppercase character, it will match the chars in the interval)"}, // 42
-        {"[...&&...] Represent the conjunction of the left and right expression, thus matching both sides (for complicated expressions)"}, // 43
-
+        //Square bracketed lists (SOLVED)
+        {"[...] Matches any character present in the square brackets"}, //39
+        {"[^...] Matches any other character than the ones present in the square brackets"}, //40
+        {"[...x-y...](x and y are alphanumberical characters) matches any chars between the ASCII codes of x and y (ASCII code of x must be smaller than y's)"}, //41
+        {"[...&&...] Represent the conjunction of the left and right expression, thus matching both sides (for complicated expressions)"}, // 42
 
         //Literal matching (literally matching expressions like "xx" or "\?")
         
@@ -397,7 +395,7 @@ void Explain(char regexQuery[]) {
 
     }; // the number after each expression is the index of that expression
 
-    std::string regexFindingQuerys[39][1] = {
+    std::string regexFindingQuerys[43][1] = {
         {"{[0-9]+}"}, // 0
         {"{[0-9]+,}"}, // 1
         {"{[0-9]+,[0-9]+}"}, // 2
@@ -436,9 +434,13 @@ void Explain(char regexQuery[]) {
         {"(?:[^\\\\]|^){1}\\\\x(?:\\d|[A-Fa-f]){1,2}"}, // 35
         {"(?:[^\\\\]|^){1}\\\\u(?:\\d|[A-Fa-f]){4}"}, // 36
         {"(?:[^\\\\]|^){1}\\\\1"}, // 37
-        {"\\(.*\\)"} // 38
+        {"\\(.*\\)"}, // 38
+        {"\\[[^^].*\\]"}, // 39
+        {"\\[[\\^].*\\]"}, // 40
+        {"\\[.*[a-zA-Z0-9]\-[a-zA-Z0-9].*\\]"}, // 41
+        {"\\[.+&&.+\\]"} // 42
     };
-    for (int i = 0; i < 39; ++i) {
+    for (int i = 0; i < 43; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
         if (i == 2) {
             if (RE2::PartialMatch(regexQuery, pattern) && compareNumbers(regexQuery)) {
