@@ -376,15 +376,15 @@ void Explain(char regexQuery[]) {
         {"\"\\f\" Matches a form feed (rarely used nowadays)"}, // 32
         {"\"\\v\" Matches a vertical tab character (ASCII 11)"}, // 33
         {"\"\\0\" Matches a null byte (ASCII 0)"}, // 34
-        {"\"\\xhh\" (where hh is a 2 digit hexadecimal (base 16) code) matches a character represented by its 2 digit hex code"}, // 35
-        {"\"\\uHHHH\" (where HHHH is a 4 digit hexadecimal (base 16) code) matches a UNICODE character represented by its 4 digit hex code (useful for non-ASCII chars)"}, // 36
-        
+        {"\"\\xhh\" (where hh is a 2 digit hexadecimal (base 16) code) matches a character represented by its 2 digit hex code (works with 1 digit too)"}, // 35
+        {"\"\\uHHHH\" (where HHHH is a 4 digit hexadecimal (base 16) code) matches a UNICODE character represented by its 4 digit hex code (useful for non-ASCII chars)(regex flavor-dependent)"}, // 36
+         
         //Literal matching (literally matching expressions like "xx" or "\?")
         
 
     }; // the number after each expression is the index of that expression
 
-    std::string regexFindingQuerys[21][1] = {
+    std::string regexFindingQuerys[37][1] = {
         {"{[0-9]+}"}, // 0
         {"{[0-9]+,}"}, // 1
         {"{[0-9]+,[0-9]+}"}, // 2
@@ -405,9 +405,25 @@ void Explain(char regexQuery[]) {
         {"\\\\p\\{L\\}"}, // 17
         {"\\\\P\\{L\\}"}, // 18
         {"\\(\\?R\\)"}, // 19
-        {"\\(\\?\\(DEFINE\\).*\\|.*\\)"} // 20
+        {"\\(\\?\\(DEFINE\\).*\\|.*\\)"}, // 20
+        {"(?:[^\\\\]|^){1}\\\\d"}, // 21
+        {"(?:[^\\\\]|^){1}\\\\D"}, // 22
+        {"(?:[^\\\\]|^){1}\\\\w"}, // 23
+        {"(?:[^\\\\]|^){1}\\\\W"}, // 24
+        {"(?:[^\\\\]|^){1}\\\\s"}, // 25
+        {"(?:[^\\\\]|^){1}\\\\S"}, // 26
+        {"(?:[^\\\\]|^){1}\\\\b"}, // 27
+        {"(?:[^\\\\]|^){1}\\\\B"}, // 28
+        {"(?:[^\\\\]|^){1}\\\\n"}, // 29
+        {"(?:[^\\\\]|^){1}\\\\r"}, // 30
+        {"(?:[^\\\\]|^){1}\\\\t"}, // 31
+        {"(?:[^\\\\]|^){1}\\\\f"}, // 32
+        {"(?:[^\\\\]|^){1}\\\\v"}, // 33
+        {"(?:[^\\\\]|^){1}\\\\0"}, // 34
+        {"(?:[^\\\\]|^){1}\\\\x(?:\\d|[A-Fa-f]){1,2}"}, // 35
+        {"(?:[^\\\\]|^){1}\\\\u(?:\\d|[A-Fa-f]){4}"}, // 36
     };
-    for (int i = 0; i < 21; ++i) {
+    for (int i = 0; i < 37; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
         if (i == 2) {
             if (RE2::PartialMatch(regexQuery, pattern) && compareNumbers(regexQuery)) {
