@@ -302,7 +302,7 @@ void Explain(char regexQuery[]) {
         {'.', "'.' Matches any character (except newline)"},
         {'*', "'*' Matches 0 or more occurrences"},
         {'+', "'+' Matches 1 or more occurrences"},
-        {'?', "'?' Matches 0 or 1 occurrence"},
+        {'?', "'?' Matches 0 or 1 occurrence (can also stand for the lazy modifier)"},
         {'|', "'|' Alternation (OR) operator"},
         {'^', "'^' Anchors to the start of a line"},
         {'$', "'$' Anchors to the end of a line"},
@@ -324,66 +324,66 @@ void Explain(char regexQuery[]) {
     
     //end of single char regex operand explanations
     
-    char* regexMultiCharOperatorsExplanation[43] = {
+    char* regexMultiCharOperatorsExplanation[44] = {
         // Quantifiers (SOLVED)
-        {"\"{n}\" Matches exactly n times"}, // 0
-        {"\"{n,}\" Matches at least n times"}, // 1
-        {"\"{n,m}\" Matches between n and m times"}, // 2
+        {"{n} Matches exactly n times"}, // 0
+        {"{n,} Matches at least n times"}, // 1
+        {"{n,m} Matches between n and m times"}, // 2
 
         // Assertions (Lookaheads & Lookbehinds) (SOLVED)
-        {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
-        {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"}, // 4
-        {"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"}, // 5
-        {"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"}, // 6
+        {"(?=...) Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
+        {"(?!...) Negative lookahead (ensures the pattern does not follow)"}, // 4
+        {"(?<=...) Positive lookbehind (ensures the pattern precedes, but doesn't consume)"}, // 5
+        {"(?<!...) Negative lookbehind (ensures the pattern does not precede)"}, // 6
 
         // Grouping & Special Constructs (SOLVED)
-        {"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"}, // 7
-        {"\"(?P<name>...)\" Named capturing group (Python, .NET)"}, // 8
-        {"\"(? <name>...)\" Named capturing group (Java, .NET)"}, // 9
-        {"\"(?>...)\" Atomic group (prevents backtracking)"}, // 10
+        {"(?:...) Non-capturing group (groups pattern but does not store it)"}, // 7
+        {"(?P<name>...) Named capturing group (Python, .NET)"}, // 8
+        {"(? <name>...) Named capturing group (Java, .NET)"}, // 9
+        {"(?>...) Atomic group (prevents backtracking)"}, // 10
 
         // Mode Modifiers (SOLVED)
-        {"\"(?i)\" Case-insensitive mode"}, // 11
-        {"\"(?m)\" Multi-line mode (^ and $ match at line breaks)"}, // 12
-        {"\"(?s)\" Dot-all mode (dot matches newlines)"}, // 13
-        {"\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"}, // 14
-        {"\"(?imxs)\" Enables multiple modes, all at once"}, // 15
+        {"(?i) Case-insensitive mode"}, // 11
+        {"(?m) Multi-line mode (^ and $ match at line breaks)"}, // 12
+        {"(?s) Dot-all mode (dot matches newlines)"}, // 13
+        {"(?x) Free - spacing mode(ignores spaces, allows # comments)"}, // 14
+        {"(?imxs) Enables multiple modes, all at once"}, // 15
 
         // Conditional Expressions (SOLVED)
-        {"\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"}, // 16
+        {"(?(condition)left|right) - Conditional matching: If condition is met, match \"left\", otherwise match \"right\""}, // 16
 
         // Unicode & Advanced Escapes (SOLVED)
-        {"\"\\p{L}\" Matches any Unicode letter"}, // 17
-        {"\"\\P{L}\" Matches anything except a Unicode letter"}, // 18
+        {"\\p{L} Matches any Unicode letter"}, // 17
+        {"\\P{L} Matches anything except a Unicode letter"}, // 18
 
         //Recursion (SOLVED)
-        {"\"(?R)\" Calls the entire pattern again(Recursion)"}, // 19
-        {"\"(?(DEFINE)...)\" Defines a subpattern for later use"}, // 20
+        {"(?R) Calls the entire pattern again(Recursion)"}, // 19
+        {"(?(DEFINE)...) Defines a subpattern for later use"}, // 20
 
         //Square parentheses expressions
 
         //Backslash Expressions (SOLVED)
-        {"\"\\d\" Matches any digit character, equivalent to [0-9]"}, // 21
-        {"\"\\D\" Matches any non-digit character, equivalent to [^0-9]"}, // 22
-        {"\"\\w\" Matches any \"word character\", equivalent to [a-zA-Z0-9_]"}, // 23
-        {"\"\\W\" Matches any \"non-word character\", equivalent to [^a-zA-Z0-9_]"}, // 24
-        {"\"\\s\" Matches any whitespace characters (space, tab, newline, etc.)"}, // 25
-        {"\"\\S\" Matches any non-whitespace characters (NOT space, tab, newline, etc.)"}, // 26
-        {"\"\\b\" Matches a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 27
-        {"\"\\B\" Matches everything other than a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 28
-        {"\"\\n\" Matches a newline"}, // 29
-        {"\"\\r\" Matches a carriage-return (useful for windows-style line breaks, next to \\n)"}, // 30
-        {"\"\\t\" Matches a horizontal tab character (ASCII 9)"}, // 31
-        {"\"\\f\" Matches a form feed (rarely used nowadays)"}, // 32
-        {"\"\\v\" Matches a vertical tab character (ASCII 11)"}, // 33
-        {"\"\\0\" Matches a null byte (ASCII 0)"}, // 34
-        {"\"\\xhh\" (where hh is a 2 digit hexadecimal (base 16) code) matches a character represented by its 2 digit hex code (works with 1 digit too)"}, // 35
-        {"\"\\uHHHH\" (where HHHH is a 4 digit hexadecimal (base 16) code) matches a UNICODE character represented by its 4 digit hex code (useful for non-ASCII chars)(regex flavor-dependent)"}, // 36
-        {"\"\\i\" (where i is a natural number reprezenting the i'th capturing group) Is a backreference to a previously captured group, it allows you to refer back to a previously matched group in the pattern (regex flavor-dependent)"}, //37
-        
+        {"\\d Matches any digit character, equivalent to [0-9]"}, // 21
+        {"\\D Matches any non-digit character, equivalent to [^0-9]"}, // 22
+        {"\\w Matches any \"word character\", equivalent to [a-zA-Z0-9_]"}, // 23
+        {"\\W Matches any \"non-word character\", equivalent to [^a-zA-Z0-9_]"}, // 24
+        {"\\s Matches any whitespace characters (space, tab, newline, etc.)"}, // 25
+        {"\\S Matches any non-whitespace characters (NOT space, tab, newline, etc.)"}, // 26
+        {"\\b Matches a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 27
+        {"\\B Matches everything other than a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 28
+        {"\\n Matches a newline"}, // 29
+        {"\\r Matches a carriage-return (useful for windows-style line breaks, next to \\n)"}, // 30
+        {"\\t Matches a horizontal tab character (ASCII 9)"}, // 31
+        {"\\f Matches a form feed (rarely used nowadays)"}, // 32
+        {"\\v Matches a vertical tab character (ASCII 11)"}, // 33
+        {"\\0 Matches a null byte (ASCII 0)"}, // 34
+        {"\\xhh(where hh is a 2 digit hexadecimal(base 16) code) matches a character represented by its 2 digit hex code(works with 1 digit too)"}, // 35
+        {"\\uHHHH(where HHHH is a 4 digit hexadecimal(base 16) code) matches a UNICODE character represented by its 4 digit hex code(useful for non - ASCII chars)(regex flavor - dependent)"}, // 36
+        {"\\i (where i is a natural number reprezenting the i'th capturing group) Is a backreference to a previously captured group, it allows you to refer back to a previously matched group in the pattern (regex flavor-dependent)"}, //37
+
         //Regular capturing groups (SOLVED)
         {"(...) is a capturing group, it captures what the expression inside matches"}, //38
-        
+
         //Square bracketed lists (SOLVED)
         {"[...] Matches any character present in the square brackets"}, //39
         {"[^...] Matches any other character than the ones present in the square brackets"}, //40
@@ -391,12 +391,12 @@ void Explain(char regexQuery[]) {
         {"[...&&...] Represent the conjunction of the left and right expression, thus matching both sides (for complicated expressions)"}, // 42
 
         //Literal matching (literally matching expressions like "xx" or "\?")
-        
-        //Slash expressions (/g, /m)
+        {""} // 43
+
 
     }; // the number after each expression is the index of that expression
 
-    std::string regexFindingQuerys[43][1] = {
+    std::string regexFindingQuerys[44][1] = {
         {"{[0-9]+}"}, // 0
         {"{[0-9]+,}"}, // 1
         {"{[0-9]+,[0-9]+}"}, // 2
@@ -439,7 +439,8 @@ void Explain(char regexQuery[]) {
         {"\\[[^^].*\\]"}, // 39
         {"\\[[\\^].*\\]"}, // 40
         {"\\[.*[a-zA-Z0-9]\-[a-zA-Z0-9].*\\]"}, // 41
-        {"\\[.+&&.+\\]"} // 42
+        {"\\[.+&&.+\\]"}, // 42
+        {"\\[\]\[\@\#\$\%\^\&\}\*\{\)\(\\\-\=\.]"} // 43
     };
     for (int i = 0; i < 43; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
