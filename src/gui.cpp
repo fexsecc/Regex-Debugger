@@ -6,6 +6,7 @@
 //new imgui definitions
 
 #define WRAPPED_BULLET_TEXT(text) ImGui::TextWrapped("-"); ImGui::SameLine(); ImGui::TextWrapped(text);
+#define WRAPPED_ERROR_BULLET(error) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255,0,0,255)); ImGui::TextWrapped("-ERROR: "); ImGui::SameLine(); ImGui::TextWrapped(error); ImGui::PopStyleColor();
 
 //end of new imgui definitions
 
@@ -315,7 +316,7 @@ void Explain(char regexQuery[]) {
     p = strpbrk(regexQuery, sep);
 
     while (p != nullptr) {
-        if (regexSingleCharOperatorsExplanation[p[0]] && (p==regexQuery || *(p - 1) != '\\')) {
+        if (regexSingleCharOperatorsExplanation[p[0]] && (p==regexQuery || (*(p - 1) != '\\' && *(p - 1) != '['))) {
             WRAPPED_BULLET_TEXT(regexSingleCharOperatorsExplanation[p[0]]);
             regexSingleCharOperatorsExplanation.erase(p[0]);
         }
@@ -442,7 +443,7 @@ void Explain(char regexQuery[]) {
         {"\\[.+&&.+\\]"}, // 42
         {"\\[\]\[\@\#\$\%\^\&\}\*\{\)\(\\\-\=\.]"} // 43
     };
-    for (int i = 0; i < 43; ++i) {
+    for (int i = 0; i < 44; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
         if (i == 2) {
             if (RE2::PartialMatch(regexQuery, pattern) && compareNumbers(regexQuery)) {
@@ -455,6 +456,17 @@ void Explain(char regexQuery[]) {
     }
     ImGui::PopFont();
     ImGui::End();
+}
+
+void showErrorsInRegexp(char regexQuery[]) {
+    RE2 regexp(regexQuery);
+    if (!regexp.ok()) {
+        ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+        ImGui::PushFont(jetFont185);
+        WRAPPED_ERROR_BULLET(regexp.error().c_str());
+        ImGui::PopFont();
+        ImGui::End();
+    }
 }
 
 
@@ -537,6 +549,7 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
         ImGui::PushFont(jetFont185);
         ImGui::InputText("<--regexInput", buf, IM_ARRAYSIZE(buf));
         ImGui::TextWrapped(buf);
+        showErrorsInRegexp(buf);
         ImGui::SetWindowPos(ImVec2(380 * scale.x, 20), 0);
         ApplyScale("Input Window", ImVec2(900, 300), scale);
         ImGui::PopFont();
