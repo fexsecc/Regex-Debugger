@@ -6,6 +6,7 @@
 //new imgui definitions
 
 #define WRAPPED_BULLET_TEXT(text) ImGui::TextWrapped("-"); ImGui::SameLine(); ImGui::TextWrapped(text);
+#define WRAPPED_ERROR_BULLET(error) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255,0,0,255)); ImGui::TextWrapped("-RE2_ERROR: "); ImGui::SameLine(); ImGui::TextWrapped(error); ImGui::PopStyleColor();
 
 //end of new imgui definitions
 
@@ -295,14 +296,14 @@ bool compareNumbers(char* s) { // returns true if first<second and false otherwi
 void Explain(char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
     ImGui::PushFont(jetFont185);
-    
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
     //single character regex expression explanations
 
     std::unordered_map<char, const char*> regexSingleCharOperatorsExplanation = {
         {'.', "'.' Matches any character (except newline)"},
         {'*', "'*' Matches 0 or more occurrences"},
-        {'+', "'+' Matches 1 or more occurrences"},
-        {'?', "'?' Matches 0 or 1 occurrence"},
+        {'+', "'+' Matches 1 or more occurrences (can also stand for the possesive quantifier"},
+        {'?', "'?' Matches 0 or 1 occurrence (can also stand for the lazy quantifier)"},
         {'|', "'|' Alternation (OR) operator"},
         {'^', "'^' Anchors to the start of a line"},
         {'$', "'$' Anchors to the end of a line"},
@@ -315,75 +316,77 @@ void Explain(char regexQuery[]) {
     p = strpbrk(regexQuery, sep);
 
     while (p != nullptr) {
-        if (regexSingleCharOperatorsExplanation[p[0]] && (p==regexQuery || *(p - 1) != '\\')) {
+        if (regexSingleCharOperatorsExplanation[p[0]] && (p==regexQuery || (*(p - 1) != '\\' && *(p - 1) != '['))) {
             WRAPPED_BULLET_TEXT(regexSingleCharOperatorsExplanation[p[0]]);
             regexSingleCharOperatorsExplanation.erase(p[0]);
         }
         p = strpbrk(p + 1, sep);
     }
     
+    ImGui::PopStyleColor();
+
     //end of single char regex operand explanations
     
-    char* regexMultiCharOperatorsExplanation[43] = {
+    char* regexMultiCharOperatorsExplanation[45] = {
         // Quantifiers (SOLVED)
-        {"\"{n}\" Matches exactly n times"}, // 0
-        {"\"{n,}\" Matches at least n times"}, // 1
-        {"\"{n,m}\" Matches between n and m times"}, // 2
+        {"{n} Matches exactly n times"}, // 0
+        {"{n,} Matches at least n times"}, // 1
+        {"{n,m} Matches between n and m times"}, // 2
 
         // Assertions (Lookaheads & Lookbehinds) (SOLVED)
-        {"\"(?=...)\" Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
-        {"\"(?!...)\" Negative lookahead (ensures the pattern does not follow)"}, // 4
-        {"\"(?<=...)\" Positive lookbehind (ensures the pattern precedes, but doesn't consume)"}, // 5
-        {"\"(?<!...)\" Negative lookbehind (ensures the pattern does not precede)"}, // 6
+        {"(?=...) Positive lookahead (ensures the pattern follows, but doesn't consume)"}, // 3
+        {"(?!...) Negative lookahead (ensures the pattern does not follow)"}, // 4
+        {"(?<=...) Positive lookbehind (ensures the pattern precedes, but doesn't consume)"}, // 5
+        {"(?<!...) Negative lookbehind (ensures the pattern does not precede)"}, // 6
 
         // Grouping & Special Constructs (SOLVED)
-        {"\"(?:...)\" Non-capturing group (groups pattern but does not store it)"}, // 7
-        {"\"(?P<name>...)\" Named capturing group (Python, .NET)"}, // 8
-        {"\"(? <name>...)\" Named capturing group (Java, .NET)"}, // 9
-        {"\"(?>...)\" Atomic group (prevents backtracking)"}, // 10
+        {"(?:...) Non-capturing group (groups pattern but does not store it)"}, // 7
+        {"(?P<name>...) Named capturing group (Python, .NET)"}, // 8
+        {"(? <name>...) Named capturing group (Java, .NET)"}, // 9
+        {"(?>...) Atomic group (prevents backtracking)"}, // 10
 
         // Mode Modifiers (SOLVED)
-        {"\"(?i)\" Case-insensitive mode"}, // 11
-        {"\"(?m)\" Multi-line mode (^ and $ match at line breaks)"}, // 12
-        {"\"(?s)\" Dot-all mode (dot matches newlines)"}, // 13
-        {"\"(?x)\" Free - spacing mode(ignores spaces, allows # comments)"}, // 14
-        {"\"(?imxs)\" Enables multiple modes, all at once"}, // 15
+        {"(?i) Case-insensitive mode"}, // 11
+        {"(?m) Multi-line mode (^ and $ match at line breaks)"}, // 12
+        {"(?s) Dot-all mode (dot matches newlines)"}, // 13
+        {"(?x) Free - spacing mode(ignores spaces, allows # comments)"}, // 14
+        {"(?imxs) Enables multiple modes, all at once"}, // 15
 
         // Conditional Expressions (SOLVED)
-        {"\"(?(condition)yes|no)\" - Conditional matching: If condition is met, match 'yes', otherwise match 'no'"}, // 16
+        {"(?(condition)left|right) - Conditional matching: If condition is met, match \"left\", otherwise match \"right\""}, // 16
 
         // Unicode & Advanced Escapes (SOLVED)
-        {"\"\\p{L}\" Matches any Unicode letter"}, // 17
-        {"\"\\P{L}\" Matches anything except a Unicode letter"}, // 18
+        {"\\p{L} Matches any Unicode letter"}, // 17
+        {"\\P{L} Matches anything except a Unicode letter"}, // 18
 
         //Recursion (SOLVED)
-        {"\"(?R)\" Calls the entire pattern again(Recursion)"}, // 19
-        {"\"(?(DEFINE)...)\" Defines a subpattern for later use"}, // 20
+        {"(?R) Calls the entire pattern again(Recursion)"}, // 19
+        {"(?(DEFINE)...) Defines a subpattern for later use"}, // 20
 
         //Square parentheses expressions
 
         //Backslash Expressions (SOLVED)
-        {"\"\\d\" Matches any digit character, equivalent to [0-9]"}, // 21
-        {"\"\\D\" Matches any non-digit character, equivalent to [^0-9]"}, // 22
-        {"\"\\w\" Matches any \"word character\", equivalent to [a-zA-Z0-9_]"}, // 23
-        {"\"\\W\" Matches any \"non-word character\", equivalent to [^a-zA-Z0-9_]"}, // 24
-        {"\"\\s\" Matches any whitespace characters (space, tab, newline, etc.)"}, // 25
-        {"\"\\S\" Matches any non-whitespace characters (NOT space, tab, newline, etc.)"}, // 26
-        {"\"\\b\" Matches a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 27
-        {"\"\\B\" Matches everything other than a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 28
-        {"\"\\n\" Matches a newline"}, // 29
-        {"\"\\r\" Matches a carriage-return (useful for windows-style line breaks, next to \\n)"}, // 30
-        {"\"\\t\" Matches a horizontal tab character (ASCII 9)"}, // 31
-        {"\"\\f\" Matches a form feed (rarely used nowadays)"}, // 32
-        {"\"\\v\" Matches a vertical tab character (ASCII 11)"}, // 33
-        {"\"\\0\" Matches a null byte (ASCII 0)"}, // 34
-        {"\"\\xhh\" (where hh is a 2 digit hexadecimal (base 16) code) matches a character represented by its 2 digit hex code (works with 1 digit too)"}, // 35
-        {"\"\\uHHHH\" (where HHHH is a 4 digit hexadecimal (base 16) code) matches a UNICODE character represented by its 4 digit hex code (useful for non-ASCII chars)(regex flavor-dependent)"}, // 36
-        {"\"\\i\" (where i is a natural number reprezenting the i'th capturing group) Is a backreference to a previously captured group, it allows you to refer back to a previously matched group in the pattern (regex flavor-dependent)"}, //37
-        
+        {"\\d Matches any digit character, equivalent to [0-9]"}, // 21
+        {"\\D Matches any non-digit character, equivalent to [^0-9]"}, // 22
+        {"\\w Matches any \"word character\", equivalent to [a-zA-Z0-9_]"}, // 23
+        {"\\W Matches any \"non-word character\", equivalent to [^a-zA-Z0-9_]"}, // 24
+        {"\\s Matches any whitespace characters (space, tab, newline, etc.)"}, // 25
+        {"\\S Matches any non-whitespace characters (NOT space, tab, newline, etc.)"}, // 26
+        {"\\b Matches a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 27
+        {"\\B Matches everything other than a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 28
+        {"\\n Matches a newline"}, // 29
+        {"\\r Matches a carriage-return (useful for windows-style line breaks, next to \\n)"}, // 30
+        {"\\t Matches a horizontal tab character (ASCII 9)"}, // 31
+        {"\\f Matches a form feed (rarely used nowadays)"}, // 32
+        {"\\v Matches a vertical tab character (ASCII 11)"}, // 33
+        {"\\0 Matches a null byte (ASCII 0)"}, // 34
+        {"\\xhh(where hh is a 2 digit hexadecimal(base 16) code) matches a character represented by its 2 digit hex code(works with 1 digit too)"}, // 35
+        {"\\uHHHH(where HHHH is a 4 digit hexadecimal(base 16) code) matches a UNICODE character represented by its 4 digit hex code(useful for non - ASCII chars)(regex flavor - dependent)"}, // 36
+        {"\\i (where i is a natural number reprezenting the i'th capturing group) Is a backreference to a previously captured group, it allows you to refer back to a previously matched group in the pattern (regex flavor-dependent)"}, //37
+
         //Regular capturing groups (SOLVED)
         {"(...) is a capturing group, it captures what the expression inside matches"}, //38
-        
+
         //Square bracketed lists (SOLVED)
         {"[...] Matches any character present in the square brackets"}, //39
         {"[^...] Matches any other character than the ones present in the square brackets"}, //40
@@ -391,12 +394,14 @@ void Explain(char regexQuery[]) {
         {"[...&&...] Represent the conjunction of the left and right expression, thus matching both sides (for complicated expressions)"}, // 42
 
         //Literal matching (literally matching expressions like "xx" or "\?")
-        
-        //Slash expressions (/g, /m)
+        {"\\$ (where $ is any special character) matches s literally"}, // 43
+        {"'c' (where c is any alphanumerical character or some special characters (-='\";:,<>&%#@!~`_) not used in an expression) matches the character 'c' literally"} // 44
+
+
 
     }; // the number after each expression is the index of that expression
 
-    std::string regexFindingQuerys[43][1] = {
+    std::string regexFindingQuerys[45][1] = {
         {"{[0-9]+}"}, // 0
         {"{[0-9]+,}"}, // 1
         {"{[0-9]+,[0-9]+}"}, // 2
@@ -439,9 +444,11 @@ void Explain(char regexQuery[]) {
         {"\\[[^^].*\\]"}, // 39
         {"\\[[\\^].*\\]"}, // 40
         {"\\[.*[a-zA-Z0-9]\-[a-zA-Z0-9].*\\]"}, // 41
-        {"\\[.+&&.+\\]"} // 42
+        {"\\[.+&&.+\\]"}, // 42
+        {"\\\\[\\]\\[\\@\\#\\$\\%\\^\\&\\}\\*\\{\\)\\(\\\\\\-\\=\\.\\,\\!\\<\\>\\'\\\"\\;\\:\\_]"}, // 43
+        {"(?:^[a-zA-Z0-9\\-='\";:,<>&%#!@~`_])|(?:[^\\\\][a-zA-Z0-9\\-='\";:,<>&%#!@~`_]+)"} // 44
     };
-    for (int i = 0; i < 43; ++i) {
+    for (int i = 0; i < 45; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
         if (i == 2) {
             if (RE2::PartialMatch(regexQuery, pattern) && compareNumbers(regexQuery)) {
@@ -454,6 +461,19 @@ void Explain(char regexQuery[]) {
     }
     ImGui::PopFont();
     ImGui::End();
+}
+
+// the below functions are no longer for the explanation window functionality
+
+void showErrorsInRegexp(char regexQuery[]) {
+    RE2 regexp(regexQuery);
+    if (!regexp.ok()) {
+        ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+        ImGui::PushFont(jetFont185);
+        WRAPPED_ERROR_BULLET(regexp.error().c_str());
+        ImGui::PopFont();
+        ImGui::End();
+    }
 }
 
 
@@ -476,8 +496,9 @@ void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery
         state[0] = 0;
     ImGui::Text("This is the explanation window!");
     Explain(regexQuery);
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24 + 300 * scale.y), 0);
     ApplyScale("explanationWindow", ImVec2(900, 420), scale);
+    ImGui::Text("");
     ImGui::PopFont();
     ImGui::End();
 }
@@ -488,8 +509,9 @@ void generateFocusedValidInputWindow(ImVec2 scale, int state[], char regexQuery[
     if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the valid input window!");
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24 + 300 * scale.y), 0);
     ApplyScale("1", ImVec2(900, 420), scale);
+    ImGui::Text("");
     ImGui::PopFont();
     ImGui::End();
 }
@@ -503,8 +525,9 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     if (ImGui::Button("Focus VI window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 2;
     ImGui::Text("This is the valid input window!");
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
-    ApplyScale("1", ImVec2(450, 420), scale);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24.3 + 300 * scale.y), 0);
+    ApplyScale("1", ImVec2(450, 407.7), scale);
+    ImGui::Text("");
     ImGui::PopFont();
     ImGui::End();
 
@@ -515,9 +538,10 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     if (ImGui::Button("Focus Ex window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 1;
     ImGui::Text("This is the explanation window!");
-    ImGui::SetWindowPos(ImVec2(830 * scale.x, 20 + 300 * scale.y), 0);
-    ApplyScale("explanationWindow", ImVec2(450, 420), scale);
+    ImGui::SetWindowPos(ImVec2(830 * scale.x, 24 + 300 * scale.y), 0);
+    ApplyScale("explanationWindow", ImVec2(450, 408), scale);
     Explain(regexQuery);
+    ImGui::Text("");
     ImGui::PopFont();
     ImGui::End();
 
@@ -530,14 +554,18 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
 
     generateMainWindow(scale); // generate main window and append into it
 
-    static char buf[100000] = "^([0-9])\\1{3}$"; //this is the Regex Input tab
+    static char buf[10000] = ""; //this is the Regex Input tab
     {
         ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
-        ImGui::InputText("<--regexInput", buf, IM_ARRAYSIZE(buf));
-        ImGui::TextWrapped(buf);
-        ImGui::SetWindowPos(ImVec2(380 * scale.x, 20), 0);
+        ImGui::InputText("<--regexInput (USES RE2)", buf, IM_ARRAYSIZE(buf));
+        ImGui::PushTextWrapPos();
+        ImGui::TextUnformatted(buf);
+        ImGui::PopTextWrapPos();
+        showErrorsInRegexp(buf);
+        ImGui::SetWindowPos(ImVec2(380 * scale.x, 24), 0);
         ApplyScale("Input Window", ImVec2(900, 300), scale);
+        ImGui::Text("");
         ImGui::PopFont();
         ImGui::End();
     }
@@ -714,3 +742,4 @@ void RenderGUI(GLFWwindow* window, ImVec2 initDisplaySize) {
 }
 
 #undef WRAPPED_BULLET_TEXT
+#undef WRAPPED_ERROR_BULLET
