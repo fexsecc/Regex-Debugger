@@ -458,6 +458,8 @@ void Explain(char regexQuery[]) {
     ImGui::End();
 }
 
+// the below functions are no longer for the explanation window functionality
+
 void showErrorsInRegexp(char regexQuery[]) {
     RE2 regexp(regexQuery);
     if (!regexp.ok()) {
@@ -489,8 +491,9 @@ void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery
         state[0] = 0;
     ImGui::Text("This is the explanation window!");
     Explain(regexQuery);
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24 + 300 * scale.y), 0);
     ApplyScale("explanationWindow", ImVec2(900, 420), scale);
+    ImGui::Text("");
     ImGui::PopFont();
     ImGui::End();
 }
@@ -501,8 +504,9 @@ void generateFocusedValidInputWindow(ImVec2 scale, int state[], char regexQuery[
     if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the valid input window!");
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24 + 300 * scale.y), 0);
     ApplyScale("1", ImVec2(900, 420), scale);
+    ImGui::Text("");
     ImGui::PopFont();
     ImGui::End();
 }
@@ -516,8 +520,9 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     if (ImGui::Button("Focus VI window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 2;
     ImGui::Text("This is the valid input window!");
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 20 + 300 * scale.y), 0);
-    ApplyScale("1", ImVec2(450, 420), scale);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24.3 + 300 * scale.y), 0);
+    ApplyScale("1", ImVec2(450, 407.7), scale);
+    ImGui::Text("");
     ImGui::PopFont();
     ImGui::End();
 
@@ -528,9 +533,10 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     if (ImGui::Button("Focus Ex window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 1;
     ImGui::Text("This is the explanation window!");
-    ImGui::SetWindowPos(ImVec2(830 * scale.x, 20 + 300 * scale.y), 0);
-    ApplyScale("explanationWindow", ImVec2(450, 420), scale);
+    ImGui::SetWindowPos(ImVec2(830 * scale.x, 24 + 300 * scale.y), 0);
+    ApplyScale("explanationWindow", ImVec2(450, 408), scale);
     Explain(regexQuery);
+    ImGui::Text("");
     ImGui::PopFont();
     ImGui::End();
 
@@ -547,11 +553,12 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
     {
         ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
-        ImGui::InputText("<--regexInput", buf, IM_ARRAYSIZE(buf));
+        ImGui::InputText("<--regexInput (USES RE2)", buf, IM_ARRAYSIZE(buf));
         ImGui::TextWrapped(buf);
         showErrorsInRegexp(buf);
-        ImGui::SetWindowPos(ImVec2(380 * scale.x, 20), 0);
+        ImGui::SetWindowPos(ImVec2(380 * scale.x, 24), 0);
         ApplyScale("Input Window", ImVec2(900, 300), scale);
+        ImGui::Text("");
         ImGui::PopFont();
         ImGui::End();
     }
@@ -728,3 +735,4 @@ void RenderGUI(GLFWwindow* window, ImVec2 initDisplaySize) {
 }
 
 #undef WRAPPED_BULLET_TEXT
+#undef WRAPPED_ERROR_BULLET
