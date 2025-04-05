@@ -6,7 +6,7 @@
 //new imgui definitions
 
 #define WRAPPED_BULLET_TEXT(text) ImGui::TextWrapped("-"); ImGui::SameLine(); ImGui::TextWrapped(text);
-#define WRAPPED_ERROR_BULLET(error) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255,0,0,255)); ImGui::TextWrapped("-ERROR: "); ImGui::SameLine(); ImGui::TextWrapped(error); ImGui::PopStyleColor();
+#define WRAPPED_ERROR_BULLET(error) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255,0,0,255)); ImGui::TextWrapped("-RE2_ERROR: "); ImGui::SameLine(); ImGui::TextWrapped(error); ImGui::PopStyleColor();
 
 //end of new imgui definitions
 
@@ -296,14 +296,14 @@ bool compareNumbers(char* s) { // returns true if first<second and false otherwi
 void Explain(char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
     ImGui::PushFont(jetFont185);
-    
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
     //single character regex expression explanations
 
     std::unordered_map<char, const char*> regexSingleCharOperatorsExplanation = {
         {'.', "'.' Matches any character (except newline)"},
         {'*', "'*' Matches 0 or more occurrences"},
-        {'+', "'+' Matches 1 or more occurrences"},
-        {'?', "'?' Matches 0 or 1 occurrence (can also stand for the lazy modifier)"},
+        {'+', "'+' Matches 1 or more occurrences (can also stand for the possesive quantifier"},
+        {'?', "'?' Matches 0 or 1 occurrence (can also stand for the lazy quantifier)"},
         {'|', "'|' Alternation (OR) operator"},
         {'^', "'^' Anchors to the start of a line"},
         {'$', "'$' Anchors to the end of a line"},
@@ -323,9 +323,11 @@ void Explain(char regexQuery[]) {
         p = strpbrk(p + 1, sep);
     }
     
+    ImGui::PopStyleColor();
+
     //end of single char regex operand explanations
     
-    char* regexMultiCharOperatorsExplanation[44] = {
+    char* regexMultiCharOperatorsExplanation[45] = {
         // Quantifiers (SOLVED)
         {"{n} Matches exactly n times"}, // 0
         {"{n,} Matches at least n times"}, // 1
@@ -392,12 +394,14 @@ void Explain(char regexQuery[]) {
         {"[...&&...] Represent the conjunction of the left and right expression, thus matching both sides (for complicated expressions)"}, // 42
 
         //Literal matching (literally matching expressions like "xx" or "\?")
-        {""} // 43
+        {"\\$ (where $ is any special character) matches s literally"}, // 43
+        {"'c' (where c is any alphanumerical character or some special characters (-='\";:,<>&%#@!~`_) not used in an expression) matches the character 'c' literally"} // 44
+
 
 
     }; // the number after each expression is the index of that expression
 
-    std::string regexFindingQuerys[44][1] = {
+    std::string regexFindingQuerys[45][1] = {
         {"{[0-9]+}"}, // 0
         {"{[0-9]+,}"}, // 1
         {"{[0-9]+,[0-9]+}"}, // 2
@@ -441,9 +445,10 @@ void Explain(char regexQuery[]) {
         {"\\[[\\^].*\\]"}, // 40
         {"\\[.*[a-zA-Z0-9]\-[a-zA-Z0-9].*\\]"}, // 41
         {"\\[.+&&.+\\]"}, // 42
-        {"\\[\]\[\@\#\$\%\^\&\}\*\{\)\(\\\-\=\.]"} // 43
+        {"\\\\[\\]\\[\\@\\#\\$\\%\\^\\&\\}\\*\\{\\)\\(\\\\\\-\\=\\.\\,\\!\\<\\>\\'\\\"\\;\\:\\_]"}, // 43
+        {"(?:^[a-zA-Z0-9\\-='\";:,<>&%#!@~`_])|(?:[^\\\\][a-zA-Z0-9\\-='\";:,<>&%#!@~`_]+)"} // 44
     };
-    for (int i = 0; i < 44; ++i) {
+    for (int i = 0; i < 45; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
         if (i == 2) {
             if (RE2::PartialMatch(regexQuery, pattern) && compareNumbers(regexQuery)) {
@@ -549,12 +554,14 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
 
     generateMainWindow(scale); // generate main window and append into it
 
-    static char buf[100000] = "^([0-9])\\1{3}$"; //this is the Regex Input tab
+    static char buf[10000] = ""; //this is the Regex Input tab
     {
         ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
         ImGui::InputText("<--regexInput (USES RE2)", buf, IM_ARRAYSIZE(buf));
-        ImGui::TextWrapped(buf);
+        ImGui::PushTextWrapPos();
+        ImGui::TextUnformatted(buf);
+        ImGui::PopTextWrapPos();
         showErrorsInRegexp(buf);
         ImGui::SetWindowPos(ImVec2(380 * scale.x, 24), 0);
         ApplyScale("Input Window", ImVec2(900, 300), scale);
