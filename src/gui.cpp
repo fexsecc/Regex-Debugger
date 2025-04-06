@@ -463,14 +463,13 @@ void Explain(char regexQuery[]) {
 void showErrorsInRegexp(char regexQuery[]) {
     RE2 regexp(regexQuery);
     if (!regexp.ok()) {
-        ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+        ImGui::Begin("Regexp Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
         WRAPPED_ERROR_BULLET(regexp.error().c_str());
         ImGui::PopFont();
         ImGui::End();
     }
 }
-
 
 //start of window generation functions
 
@@ -479,7 +478,6 @@ void generateMainWindow(ImVec2 scale) {
     ImGui::Begin("Regex Debugger", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus);
     ImGui::SetWindowPos(ImVec2(0, 0), 0);
     ApplyScale("Regex Debugger", ImVec2(1280, 720), scale); //here the initDisplaySize is the original size of the window
-    ImGui::Text("REGEX_DBG"); // Display text (you can use format strings like printf)
     ImGui::PopFont();
     ImGui::End();
 }
@@ -551,7 +549,7 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
 
     static char buf[10000] = ""; //this is the Regex Input tab
     {
-        ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+        ImGui::Begin("Regexp Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
         ImGui::InputText("<--regexInput (USES RE2)", buf, IM_ARRAYSIZE(buf));
         ImGui::PushTextWrapPos();
@@ -559,8 +557,18 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
         ImGui::PopTextWrapPos();
         showErrorsInRegexp(buf);
         ImGui::SetWindowPos(ImVec2(380 * scale.x, 24), 0);
-        ApplyScale("Input Window", ImVec2(900, 300), scale);
+        ApplyScale("Regexp Input Window", ImVec2(900, 300), scale);
         ImGui::Text("");
+        ImGui::PopFont();
+        ImGui::End();
+    }
+    static char buf2[10000] = "Test String"; // this is the Test String tab
+    {
+        ImGui::Begin("Text String Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+        ImGui::PushFont(jetFont185);
+        ImGui::InputTextMultiline(" ", buf2, IM_ARRAYSIZE(buf2), ImVec2(360*scale.x,280*scale.y));
+        ImGui::SetWindowPos(ImVec2(0, 24), 0);
+        ApplyScale("Text String Input Window", ImVec2(380, 300), scale);
         ImGui::PopFont();
         ImGui::End();
     }
