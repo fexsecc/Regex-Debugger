@@ -242,18 +242,6 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
     return window;
 }
 
-//scaling function for ImGui windows
-void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
-    ImGui::Begin(name);
-    ImGui::PushFont(jetFont185);
-
-    ImGui::SetWindowSize(ImVec2(initSize.x * scale.x, initSize.y * scale.y), 0); //apply scale to the specifically named window
-
-    ImGui::PopFont();
-    ImGui::End();
-}
-
-
 //the below functions are for the Explanation Window functionality
 
 bool compareNumbers(char* s) { // returns true if first<second and false otherwise
@@ -296,7 +284,6 @@ bool compareNumbers(char* s) { // returns true if first<second and false otherwi
 void Explain(char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
     ImGui::PushFont(jetFont185);
-    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
     //single character regex expression explanations
 
     std::unordered_map<char, const char*> regexSingleCharOperatorsExplanation = {
@@ -322,8 +309,6 @@ void Explain(char regexQuery[]) {
         }
         p = strpbrk(p + 1, sep);
     }
-    
-    ImGui::PopStyleColor();
 
     //end of single char regex operand explanations
     
@@ -344,48 +329,45 @@ void Explain(char regexQuery[]) {
         {"(?P<name>...) Named capturing group (Python, .NET)"}, // 8
         {"(? <name>...) Named capturing group (Java, .NET)"}, // 9
         {"(?>...) Atomic group (prevents backtracking)"}, // 10
+        {"(...) is a capturing group, it captures what the expression inside matches"}, //11
+
 
         // Mode Modifiers (SOLVED)
-        {"(?i) Case-insensitive mode"}, // 11
-        {"(?m) Multi-line mode (^ and $ match at line breaks)"}, // 12
-        {"(?s) Dot-all mode (dot matches newlines)"}, // 13
-        {"(?x) Free - spacing mode(ignores spaces, allows # comments)"}, // 14
-        {"(?imxs) Enables multiple modes, all at once"}, // 15
+        {"(?i) Case-insensitive mode"}, // 12
+        {"(?m) Multi-line mode (^ and $ match at line breaks)"}, // 13
+        {"(?s) Dot-all mode (dot matches newlines)"}, // 14
+        {"(?x) Free - spacing mode(ignores spaces, allows # comments)"}, // 15
+        {"(?imxs) Enables multiple modes, all at once"}, // 16
 
         // Conditional Expressions (SOLVED)
-        {"(?(condition)left|right) - Conditional matching: If condition is met, match \"left\", otherwise match \"right\""}, // 16
+        {"(?(condition)left|right) - Conditional matching: If condition is met, match \"left\", otherwise match \"right\""}, // 17
 
         // Unicode & Advanced Escapes (SOLVED)
-        {"\\p{L} Matches any Unicode letter"}, // 17
-        {"\\P{L} Matches anything except a Unicode letter"}, // 18
+        {"\\p{L} Matches any Unicode letter"}, // 18
+        {"\\P{L} Matches anything except a Unicode letter"}, // 19
 
         //Recursion (SOLVED)
-        {"(?R) Calls the entire pattern again(Recursion)"}, // 19
-        {"(?(DEFINE)...) Defines a subpattern for later use"}, // 20
-
-        //Square parentheses expressions
+        {"(?R) Calls the entire pattern again(Recursion)"}, // 20
+        {"(?(DEFINE)...) Defines a subpattern for later use"}, // 21
 
         //Backslash Expressions (SOLVED)
-        {"\\d Matches any digit character, equivalent to [0-9]"}, // 21
-        {"\\D Matches any non-digit character, equivalent to [^0-9]"}, // 22
-        {"\\w Matches any \"word character\", equivalent to [a-zA-Z0-9_]"}, // 23
-        {"\\W Matches any \"non-word character\", equivalent to [^a-zA-Z0-9_]"}, // 24
-        {"\\s Matches any whitespace characters (space, tab, newline, etc.)"}, // 25
-        {"\\S Matches any non-whitespace characters (NOT space, tab, newline, etc.)"}, // 26
-        {"\\b Matches a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 27
-        {"\\B Matches everything other than a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 28
-        {"\\n Matches a newline"}, // 29
-        {"\\r Matches a carriage-return (useful for windows-style line breaks, next to \\n)"}, // 30
-        {"\\t Matches a horizontal tab character (ASCII 9)"}, // 31
-        {"\\f Matches a form feed (rarely used nowadays)"}, // 32
-        {"\\v Matches a vertical tab character (ASCII 11)"}, // 33
-        {"\\0 Matches a null byte (ASCII 0)"}, // 34
-        {"\\xhh(where hh is a 2 digit hexadecimal(base 16) code) matches a character represented by its 2 digit hex code(works with 1 digit too)"}, // 35
-        {"\\uHHHH(where HHHH is a 4 digit hexadecimal(base 16) code) matches a UNICODE character represented by its 4 digit hex code(useful for non - ASCII chars)(regex flavor - dependent)"}, // 36
-        {"\\i (where i is a natural number reprezenting the i'th capturing group) Is a backreference to a previously captured group, it allows you to refer back to a previously matched group in the pattern (regex flavor-dependent)"}, //37
-
-        //Regular capturing groups (SOLVED)
-        {"(...) is a capturing group, it captures what the expression inside matches"}, //38
+        {"\\d Matches any digit character, equivalent to [0-9]"}, // 22
+        {"\\D Matches any non-digit character, equivalent to [^0-9]"}, // 23
+        {"\\w Matches any \"word character\", equivalent to [a-zA-Z0-9_]"}, // 24
+        {"\\W Matches any \"non-word character\", equivalent to [^a-zA-Z0-9_]"}, // 25
+        {"\\s Matches any whitespace characters (space, tab, newline, etc.)"}, // 26
+        {"\\S Matches any non-whitespace characters (NOT space, tab, newline, etc.)"}, // 27
+        {"\\b Matches a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 28
+        {"\\B Matches everything other than a position between a word character (\\w) and a non-word character (\\W), or the beginning or end of a string"}, // 29
+        {"\\n Matches a newline"}, // 30
+        {"\\r Matches a carriage-return (useful for windows-style line breaks, next to \\n)"}, // 31
+        {"\\t Matches a horizontal tab character (ASCII 9)"}, // 32
+        {"\\f Matches a form feed (rarely used nowadays)"}, // 33
+        {"\\v Matches a vertical tab character (ASCII 11)"}, // 34
+        {"\\0 Matches a null byte (ASCII 0)"}, // 35
+        {"\\xhh(where hh is a 2 digit hexadecimal(base 16) code) matches a character represented by its 2 digit hex code(works with 1 digit too)"}, // 36
+        {"\\uHHHH(where HHHH is a 4 digit hexadecimal(base 16) code) matches a UNICODE character represented by its 4 digit hex code(useful for non - ASCII chars)(regex flavor - dependent)"}, // 37
+        {"\\i (where i is a natural number reprezenting the i'th capturing group) Is a backreference to a previously captured group, it allows you to refer back to a previously matched group in the pattern (regex flavor-dependent)"}, //38
 
         //Square bracketed lists (SOLVED)
         {"[...] Matches any character present in the square brackets"}, //39
@@ -413,41 +395,42 @@ void Explain(char regexQuery[]) {
         {"\\(\\?P\\<.*\\>.*\\)"}, // 8
         {"\\(\\?\\<.*\\>.*\\)"}, // 9
         {"\\(\\?\\>.*\\)"}, // 10
-        {"\\(\\?i\\)"}, // 11
-        {"\\(\\?m\\)"}, // 12
-        {"\\(\\?s\\)"}, // 13
-        {"\\(\\?x\\)"}, // 14
-        {"\\(\\?[xims]+\\)"}, // 15
-        {"\\(\\?\\(\\?(?:!=|<!|=|<=).*|.*\\)\\)"}, // 16
-        {"\\\\p\\{L\\}"}, // 17
-        {"\\\\P\\{L\\}"}, // 18
-        {"\\(\\?R\\)"}, // 19
-        {"\\(\\?\\(DEFINE\\).*\\|.*\\)"}, // 20
-        {"(?:[^\\\\]|^){1}\\\\d"}, // 21
-        {"(?:[^\\\\]|^){1}\\\\D"}, // 22
-        {"(?:[^\\\\]|^){1}\\\\w"}, // 23
-        {"(?:[^\\\\]|^){1}\\\\W"}, // 24
-        {"(?:[^\\\\]|^){1}\\\\s"}, // 25
-        {"(?:[^\\\\]|^){1}\\\\S"}, // 26
-        {"(?:[^\\\\]|^){1}\\\\b"}, // 27
-        {"(?:[^\\\\]|^){1}\\\\B"}, // 28
-        {"(?:[^\\\\]|^){1}\\\\n"}, // 29
-        {"(?:[^\\\\]|^){1}\\\\r"}, // 30
-        {"(?:[^\\\\]|^){1}\\\\t"}, // 31
-        {"(?:[^\\\\]|^){1}\\\\f"}, // 32
-        {"(?:[^\\\\]|^){1}\\\\v"}, // 33
-        {"(?:[^\\\\]|^){1}\\\\0"}, // 34
-        {"(?:[^\\\\]|^){1}\\\\x(?:\\d|[A-Fa-f]){1,2}"}, // 35
-        {"(?:[^\\\\]|^){1}\\\\u(?:\\d|[A-Fa-f]){4}"}, // 36
-        {"(?:[^\\\\]|^){1}\\\\1"}, // 37
-        {"\\(.*\\)"}, // 38
+        {"\\(.*\\)"}, // 11
+        {"\\(\\?i\\)"}, // 12
+        {"\\(\\?m\\)"}, // 13
+        {"\\(\\?s\\)"}, // 14
+        {"\\(\\?x\\)"}, // 15
+        {"\\(\\?[xims]+\\)"}, // 16
+        {"\\(\\?\\(\\?(?:!=|<!|=|<=).*|.*\\)\\)"}, // 17
+        {"\\\\p\\{L\\}"}, // 18
+        {"\\\\P\\{L\\}"}, // 19
+        {"\\(\\?R\\)"}, // 20
+        {"\\(\\?\\(DEFINE\\).*\\|.*\\)"}, // 21
+        {"(?:[^\\\\]|^){1}\\\\d"}, // 22
+        {"(?:[^\\\\]|^){1}\\\\D"}, // 23
+        {"(?:[^\\\\]|^){1}\\\\w"}, // 24
+        {"(?:[^\\\\]|^){1}\\\\W"}, // 25
+        {"(?:[^\\\\]|^){1}\\\\s"}, // 26
+        {"(?:[^\\\\]|^){1}\\\\S"}, // 27
+        {"(?:[^\\\\]|^){1}\\\\b"}, // 28
+        {"(?:[^\\\\]|^){1}\\\\B"}, // 29
+        {"(?:[^\\\\]|^){1}\\\\n"}, // 30
+        {"(?:[^\\\\]|^){1}\\\\r"}, // 31
+        {"(?:[^\\\\]|^){1}\\\\t"}, // 32
+        {"(?:[^\\\\]|^){1}\\\\f"}, // 33
+        {"(?:[^\\\\]|^){1}\\\\v"}, // 34
+        {"(?:[^\\\\]|^){1}\\\\0"}, // 35
+        {"(?:[^\\\\]|^){1}\\\\x(?:\\d|[A-Fa-f]){1,2}"}, // 36
+        {"(?:[^\\\\]|^){1}\\\\u(?:\\d|[A-Fa-f]){4}"}, // 37
+        {"(?:[^\\\\]|^){1}\\\\1"}, // 38
         {"\\[[^^].*\\]"}, // 39
         {"\\[[\\^].*\\]"}, // 40
-        {"\\[.*[a-zA-Z0-9]\-[a-zA-Z0-9].*\\]"}, // 41
+        {"\\[.*[a-zA-Z0-9]\\-[a-zA-Z0-9].*\\]"}, // 41
         {"\\[.+&&.+\\]"}, // 42
         {"\\\\[\\]\\[\\@\\#\\$\\%\\^\\&\\}\\*\\{\\)\\(\\\\\\-\\=\\.\\,\\!\\<\\>\\'\\\"\\;\\:\\_]"}, // 43
         {"(?:^[a-zA-Z0-9\\-='\";:,<>&%#!@~`_])|(?:[^\\\\][a-zA-Z0-9\\-='\";:,<>&%#!@~`_]+)"} // 44
     };
+
     for (int i = 0; i < 45; ++i) {
         RE2 pattern(regexFindingQuerys[i][0]);
         if (i == 2) {
@@ -465,15 +448,53 @@ void Explain(char regexQuery[]) {
 
 // the below functions are no longer for the explanation window functionality
 
+//scaling function for ImGui windows
+void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
+    ImGui::Begin(name);
+    ImGui::PushFont(jetFont185);
+
+    ImGui::SetWindowSize(ImVec2(initSize.x * scale.x, initSize.y * scale.y), 0); //apply scale to the specifically named window
+
+    ImGui::PopFont();
+    ImGui::End();
+}
+
+//function for the Regexp Input Window
 void showErrorsInRegexp(char regexQuery[]) {
     RE2 regexp(regexQuery);
     if (!regexp.ok()) {
-        ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+        ImGui::Begin("Regexp Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
         WRAPPED_ERROR_BULLET(regexp.error().c_str());
         ImGui::PopFont();
         ImGui::End();
     }
+}
+
+//function for the Test String Input Window
+void showWhatGetsMatched(char regexQuery[],char testString[]) {
+    ImGui::Begin("Text String Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+    ImGui::PushFont(jetFont185);
+    std::string word;
+    RE2 regexp(regexQuery);
+    std::string pattern = "("+ regexp.pattern() + ")"; // makes the pattern search for a group so that findAndConsume works
+    RE2 realRegexp(pattern);
+    if (RE2::FullMatch(absl::string_view(testString), regexp)) {
+        WRAPPED_BULLET_TEXT("fully matched!");
+    }
+    else {
+        re2::StringPiece testedString(testString);
+        while (RE2::FindAndConsume(&testedString, realRegexp, &word)) {
+            if (word.empty()) {
+                WRAPPED_ERROR_BULLET("empty match captured, cant Partially Match!");
+                break;
+            }
+            else
+                WRAPPED_BULLET_TEXT(word.c_str());
+        }
+    }
+    ImGui::PopFont();
+    ImGui::End();
 }
 
 
@@ -484,7 +505,6 @@ void generateMainWindow(ImVec2 scale) {
     ImGui::Begin("Regex Debugger", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus);
     ImGui::SetWindowPos(ImVec2(0, 0), 0);
     ApplyScale("Regex Debugger", ImVec2(1280, 720), scale); //here the initDisplaySize is the original size of the window
-    ImGui::Text("REGEX_DBG"); // Display text (you can use format strings like printf)
     ImGui::PopFont();
     ImGui::End();
 }
@@ -554,9 +574,9 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
 
     generateMainWindow(scale); // generate main window and append into it
 
-    static char buf[10000] = ""; //this is the Regex Input tab
+    static char buf[10001] = "( )"; //this is the Regex Input tab
     {
-        ImGui::Begin("Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+        ImGui::Begin("Regexp Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
         ImGui::InputText("<--regexInput (USES RE2)", buf, IM_ARRAYSIZE(buf));
         ImGui::PushTextWrapPos();
@@ -564,8 +584,19 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
         ImGui::PopTextWrapPos();
         showErrorsInRegexp(buf);
         ImGui::SetWindowPos(ImVec2(380 * scale.x, 24), 0);
-        ApplyScale("Input Window", ImVec2(900, 300), scale);
+        ApplyScale("Regexp Input Window", ImVec2(900, 300), scale);
         ImGui::Text("");
+        ImGui::PopFont();
+        ImGui::End();
+    }
+    static char buf2[10001] = "Test String"; // this is the Test String tab
+    {
+        ImGui::Begin("Text String Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+        ImGui::PushFont(jetFont185);
+        ImGui::InputTextMultiline(" ", buf2, IM_ARRAYSIZE(buf2), ImVec2(360*scale.x,120*scale.y));
+        ImGui::SetWindowPos(ImVec2(0, 24), 0);
+        showWhatGetsMatched(buf, buf2);
+        ApplyScale("Text String Input Window", ImVec2(380, 300), scale);
         ImGui::PopFont();
         ImGui::End();
     }
