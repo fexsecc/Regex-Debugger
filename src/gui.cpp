@@ -242,18 +242,6 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
     return window;
 }
 
-//scaling function for ImGui windows
-void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
-    ImGui::Begin(name);
-    ImGui::PushFont(jetFont185);
-
-    ImGui::SetWindowSize(ImVec2(initSize.x * scale.x, initSize.y * scale.y), 0); //apply scale to the specifically named window
-
-    ImGui::PopFont();
-    ImGui::End();
-}
-
-
 //the below functions are for the Explanation Window functionality
 
 bool compareNumbers(char* s) { // returns true if first<second and false otherwise
@@ -460,6 +448,18 @@ void Explain(char regexQuery[]) {
 
 // the below functions are no longer for the explanation window functionality
 
+//scaling function for ImGui windows
+void ApplyScale(char name[], ImVec2 initSize, ImVec2 scale) {
+    ImGui::Begin(name);
+    ImGui::PushFont(jetFont185);
+
+    ImGui::SetWindowSize(ImVec2(initSize.x * scale.x, initSize.y * scale.y), 0); //apply scale to the specifically named window
+
+    ImGui::PopFont();
+    ImGui::End();
+}
+
+//function for the Regexp Input Window
 void showErrorsInRegexp(char regexQuery[]) {
     RE2 regexp(regexQuery);
     if (!regexp.ok()) {
@@ -470,6 +470,33 @@ void showErrorsInRegexp(char regexQuery[]) {
         ImGui::End();
     }
 }
+
+//function for the Test String Input Window
+void showWhatGetsMatched(char regexQuery[],char testString[]) {
+    ImGui::Begin("Text String Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+    ImGui::PushFont(jetFont185);
+    std::string word;
+    RE2 regexp(regexQuery);
+    std::string pattern = "("+ regexp.pattern() + ")"; // makes the pattern search for a group so that findAndConsume works
+    RE2 realRegexp(pattern);
+    if (RE2::FullMatch(absl::string_view(testString), regexp)) {
+        WRAPPED_BULLET_TEXT("fully matched!");
+    }
+    else {
+        re2::StringPiece testedString(testString);
+        while (RE2::FindAndConsume(&testedString, realRegexp, &word)) {
+            if (word.empty()) {
+                WRAPPED_ERROR_BULLET("empty match captured, cant Partially Match!");
+                break;
+            }
+            else
+                WRAPPED_BULLET_TEXT(word.c_str());
+        }
+    }
+    ImGui::PopFont();
+    ImGui::End();
+}
+
 
 //start of window generation functions
 
@@ -547,7 +574,7 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
 
     generateMainWindow(scale); // generate main window and append into it
 
-    static char buf[10000] = ""; //this is the Regex Input tab
+    static char buf[10001] = "( )"; //this is the Regex Input tab
     {
         ImGui::Begin("Regexp Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
@@ -562,12 +589,13 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
         ImGui::PopFont();
         ImGui::End();
     }
-    static char buf2[10000] = "Test String"; // this is the Test String tab
+    static char buf2[10001] = "Test String"; // this is the Test String tab
     {
         ImGui::Begin("Text String Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
-        ImGui::InputTextMultiline(" ", buf2, IM_ARRAYSIZE(buf2), ImVec2(360*scale.x,280*scale.y));
+        ImGui::InputTextMultiline(" ", buf2, IM_ARRAYSIZE(buf2), ImVec2(360*scale.x,120*scale.y));
         ImGui::SetWindowPos(ImVec2(0, 24), 0);
+        showWhatGetsMatched(buf, buf2);
         ApplyScale("Text String Input Window", ImVec2(380, 300), scale);
         ImGui::PopFont();
         ImGui::End();
