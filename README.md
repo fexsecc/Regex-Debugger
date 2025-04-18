@@ -3,9 +3,8 @@
 ### Windows
 
 ```powershell
-git clone https://github.com/microsoft/vcpkg.git
 Set-ExecutionPolicy Bypass -Scope Process # enable running the setup ps1 script
-.\setup.ps1
+.\setup.ps1 #clones vcpkg for you as well as setting up the path
 cmake --build build
 .\vsSetup.ps1 #Removes ALL_BUILD and ZERO_CHECK from the vs sln
 ```
