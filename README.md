@@ -1,4 +1,7 @@
 # Regex-Debugger
+
+Inspired by [Regex101](https://regex101.com/)
+
 ## Building
 ### Windows
 
