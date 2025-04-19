@@ -212,6 +212,10 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(3.0/255.0, 1.0/255.0, 44.0/255.0, 1);
+    style.Colors[ImGuiCol_Button] = ImVec4(0.00f, 0.08f, 0.06f, 1.00f);
+
     //ImGui::StyleColorsLight();
 
     /* Set the font, if you fancy a different size
@@ -498,17 +502,6 @@ void showWhatGetsMatched(char regexQuery[],char testString[]) {
 }
 
 
-//start of window generation functions
-
-void generateMainWindow(ImVec2 scale) {
-    ImGui::PushFont(jetFont185);
-    ImGui::Begin("Regex Debugger", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus);
-    ImGui::SetWindowPos(ImVec2(0, 0), 0);
-    ApplyScale("Regex Debugger", ImVec2(1280, 720), scale); //here the initDisplaySize is the original size of the window
-    ImGui::PopFont();
-    ImGui::End();
-}
-
 void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery[]) {
     ImGui::Begin("explanationWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
     ImGui::PushFont(jetFont185);
@@ -516,7 +509,7 @@ void generateFocusedExplanationWindow(ImVec2 scale, int state[], char regexQuery
         state[0] = 0;
     ImGui::Text("This is the explanation window!");
     Explain(regexQuery);
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24 + 300 * scale.y), 0);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 324 * scale.y), 0);
     ApplyScale("explanationWindow", ImVec2(900, 420), scale);
     ImGui::Text("");
     ImGui::PopFont();
@@ -529,7 +522,7 @@ void generateFocusedValidInputWindow(ImVec2 scale, int state[], char regexQuery[
     if (ImGui::Button("Go back", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 0;
     ImGui::Text("This is the valid input window!");
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24 + 300 * scale.y), 0);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 324 * scale.y), 0);
     ApplyScale("1", ImVec2(900, 420), scale);
     ImGui::Text("");
     ImGui::PopFont();
@@ -545,7 +538,7 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     if (ImGui::Button("Focus VI window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 2;
     ImGui::Text("This is the valid input window!");
-    ImGui::SetWindowPos(ImVec2(380 * scale.x, 24.3 + 300 * scale.y), 0);
+    ImGui::SetWindowPos(ImVec2(380 * scale.x, 324 * scale.y), 0);
     ApplyScale("1", ImVec2(450, 407.7), scale);
     ImGui::Text("");
     ImGui::PopFont();
@@ -558,7 +551,7 @@ void generateBothVIandEWindows(ImVec2 scale, int state[], char regexQuery[]) {
     if (ImGui::Button("Focus Ex window", ImVec2(150 * scale.x, 30 * scale.y)))
         state[0] = 1;
     ImGui::Text("This is the explanation window!");
-    ImGui::SetWindowPos(ImVec2(830 * scale.x, 24 + 300 * scale.y), 0);
+    ImGui::SetWindowPos(ImVec2(830 * scale.x, 324 * scale.y), 0);
     ApplyScale("explanationWindow", ImVec2(450, 408), scale);
     Explain(regexQuery);
     ImGui::Text("");
@@ -572,9 +565,7 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
     glfwGetFramebufferSize(window, &displayW, &displayH);
     ImVec2 scale = ImVec2(displayW / initDisplaySize.x, displayH / initDisplaySize.y);
 
-    generateMainWindow(scale); // generate main window and append into it
-
-    static char buf[10001] = "( )"; //this is the Regex Input tab
+    static char buf[10001] = " "; //this is the Regex Input tab
     {
         ImGui::Begin("Regexp Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
@@ -583,8 +574,8 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
         ImGui::TextUnformatted(buf);
         ImGui::PopTextWrapPos();
         showErrorsInRegexp(buf);
-        ImGui::SetWindowPos(ImVec2(380 * scale.x, 24), 0);
-        ApplyScale("Regexp Input Window", ImVec2(900, 300), scale);
+        ImGui::SetWindowPos(ImVec2(380 * scale.x, 0), 0);
+        ApplyScale("Regexp Input Window", ImVec2(900, 324), scale);
         ImGui::Text("");
         ImGui::PopFont();
         ImGui::End();
@@ -594,9 +585,10 @@ void generateWindows(GLFWwindow* window, int& displayW, int& displayH, ImVec2 in
         ImGui::Begin("Text String Input Window", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
         ImGui::PushFont(jetFont185);
         ImGui::InputTextMultiline(" ", buf2, IM_ARRAYSIZE(buf2), ImVec2(360*scale.x,120*scale.y));
-        ImGui::SetWindowPos(ImVec2(0, 24), 0);
         showWhatGetsMatched(buf, buf2);
-        ApplyScale("Text String Input Window", ImVec2(380, 300), scale);
+        ImGui::SetWindowPos(ImVec2(0, 0), 0);
+        ApplyScale("Text String Input Window", ImVec2(380, 324), scale);
+        ImGui::Text("");
         ImGui::PopFont();
         ImGui::End();
     }
@@ -726,7 +718,7 @@ void generateIcon(ImVec2 displaySize, ImVec2 InitDisplaySize) {
 //render loop(core function of the whole GUI)
 void RenderGUI(GLFWwindow* window, ImVec2 initDisplaySize) {
     bool showCoolButton = true;
-    ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.01f, 0.01f, 0.25f, 1.00f);
     int display_w, display_h;
     int state[1] = {}; // change this when you add another window with different states
 
