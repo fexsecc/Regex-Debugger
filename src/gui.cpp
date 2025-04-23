@@ -213,6 +213,8 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
     // Start of style setup
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
+
+    // Window bg colors
     style.Colors[ImGuiCol_WindowBg] = ImVec4(3.0/255.0, 1.0/255.0, 44.0/255.0, 1);
 
     //ImGui::StyleColorsLight();
