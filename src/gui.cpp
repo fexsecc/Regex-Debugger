@@ -217,16 +217,6 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
     // Window bg colors
     style.Colors[ImGuiCol_WindowBg] = ImVec4(3.0/255.0, 1.0/255.0, 44.0/255.0, 1);
 
-    // Button colors
-    style.Colors[ImGuiCol_Button] = ImVec4(0.1f, 0.2f, 0.5f, 1.00f);
-    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.15f, 0.25f, 0.6f, 1.00f);
-    style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.15f, 0.25f, 0.7f, 1.00f);
-
-    // Frame bg colors
-    style.Colors[ImGuiCol_FrameBg] = ImVec4(0.1f, 0.2f, 0.5f, 1.00f);
-    style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.15f, 0.25f, 0.6f, 1.00f);
-    style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.15f, 0.25f, 0.7f, 1.00f);
-
     // End of style setup
 
     //ImGui::StyleColorsLight();
