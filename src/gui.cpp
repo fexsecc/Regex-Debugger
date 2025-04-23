@@ -210,11 +210,10 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable keyboard navigation
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable gamepad navigation
 
-    // Setup Dear ImGui style
+    // Start of style setup
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
     style.Colors[ImGuiCol_WindowBg] = ImVec4(3.0/255.0, 1.0/255.0, 44.0/255.0, 1);
-    style.Colors[ImGuiCol_Button] = ImVec4(0.00f, 0.08f, 0.06f, 1.00f);
 
     //ImGui::StyleColorsLight();
 
@@ -432,7 +431,7 @@ void Explain(char regexQuery[]) {
         {"\\[.*[a-zA-Z0-9]\\-[a-zA-Z0-9].*\\]"}, // 41
         {"\\[.+&&.+\\]"}, // 42
         {"\\\\[\\]\\[\\@\\#\\$\\%\\^\\&\\}\\*\\{\\)\\(\\\\\\-\\=\\.\\,\\!\\<\\>\\'\\\"\\;\\:\\_]"}, // 43
-        {"(?:^[a-zA-Z0-9\\-='\";:,<>&%#!@~`_])|(?:[^\\\\][a-zA-Z0-9\\-='\";:,<>&%#!@~`_]+)"} // 44
+        {"(?:^[a-zA-Z0-9\\-='\";:,<>&%#!@~`_ ])|(?:[^\\\\][a-zA-Z0-9\\-='\";:,<>&%#!@~`_]+)"} // 44
     };
 
     for (int i = 0; i < 45; ++i) {
