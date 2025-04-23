@@ -218,6 +218,8 @@ GLFWwindow* InitializeGUI(ImVec2 initDisplaySize) { // Generate the main window
     style.Colors[ImGuiCol_WindowBg] = ImVec4(3.0/255.0, 1.0/255.0, 44.0/255.0, 1);
 
     //ImGui::StyleColorsLight();
+  
+    // End of style setup
 
     /* Set the font, if you fancy a different size
      * for some boxes and one for others simply load 
